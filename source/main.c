@@ -9,6 +9,8 @@
 #include "tonc_input.h"
 #include "plot.h"
 
+#include <gbfs.h>
+
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
 
@@ -93,13 +95,23 @@ int main(void) {
 	irqInit();
 	irqEnable(IRQ_VBLANK);
 
-	//consoleDemoInit();
+	consoleDemoInit();
 
 	// ansi escape sequence to set print co-ordinates
 	// /x1b[line;columnH
-	//iprintf("\x1b[10;10HHello World!\n");
+	
+	const GBFS_FILE *dat = find_first_gbfs_file(find_first_gbfs_file);
 
-	Graphics context = Graphics_new(MODE_4 | BG2_ENABLE);
+	const char * text = NULL;
+	u32 text_len = 0;
+
+	text = gbfs_get_obj(dat, "test.txt", &text_len);
+	
+	iprintf("\x1b[5;5H%s\n", text);
+
+    
+
+	/*Graphics context = Graphics_new(MODE_4 | BG2_ENABLE);
 
 	sBox box = {
 
@@ -147,7 +159,9 @@ int main(void) {
 		VBlankIntrWait();
 
 		flip(&context);
-	}
+	}*/
+
+	while (1) { }
 }
 
 

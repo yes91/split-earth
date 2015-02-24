@@ -21,6 +21,7 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 GRAPHICS	:=	gfx
+RESOURCES   :=  res
 INCLUDES	:=
 
 #---------------------------------------------------------------------------------
@@ -44,13 +45,13 @@ LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lgba
+LIBS	:=	-lgba -lgbfs
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBGBA)
+LIBDIRS	:=	$(LIBGBA) $(CURDIR)/libs/gbfs
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -73,6 +74,7 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 BMPFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.bmp)))
+export RESFILES	:=  $(foreach dir,$(RESOURCES),$(CURDIR)/$(RESOURCES)/$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -115,7 +117,7 @@ all	: $(BUILD)
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).bin $(TARGET).gba
 
 #---------------------------------------------------------------------------------
 run:
@@ -129,10 +131,27 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-$(OUTPUT).gba	:	$(OUTPUT).elf
+$(OUTPUT).gba	:	$(OUTPUT).elf res.gbfs
 
 $(OUTPUT).elf	:	$(OFILES)
 
+#---------------------------------------------------------------------------------
+# Override rule to handle the gbfs file
+#---------------------------------------------------------------------------------
+%.gba: %.elf 
+#---------------------------------------------------------------------------------
+	@$(OBJCOPY) -O binary $< $(OUTPUT).bin
+	@padbin 256 $(OUTPUT).bin
+	@cat $(OUTPUT).bin res.gbfs > $@
+	@echo built ... $(notdir $@)
+	@gbafix $@
+
+#---------------------------------------------------------------------------------
+# GBFS file rule
+#---------------------------------------------------------------------------------
+res.gbfs:
+	@gbfs res.gbfs $(RESFILES)
+#---------------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------------
 # The bin2o rule should be copied and modified
