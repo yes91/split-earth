@@ -12,21 +12,24 @@
 #define MODE4_WIDTH 120
 #define MODE4_HEIGHT 160
 
-struct Mode4_ {
+struct Graphics_ {
 	u32 width;
 	u32 height;
-	u16* paletteMem;
-	u16* frontBuffer;
-	u16* backBuffer;
-	u16* currentBuffer;
+	u32 mode;
+	u16* paletteBuffer;
+	void* frontBuffer;
+	void* backBuffer;
+	void* currentBuffer;
 };
 
-typedef struct Mode4_ Mode4;
+typedef struct Graphics_ Graphics;
 
-Mode4 Mode4_new();
+Graphics Graphics_new(int options);
 
-void flip(Mode4* g);
+void Graphics_setMode(Graphics* g, int options);
 
-void clearScreen(Mode4* g, u8 clr);
+void flip(Graphics* g);
+
+void clearScreen(Graphics* g, u32 clr);
 
 #endif

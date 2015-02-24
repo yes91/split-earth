@@ -48,7 +48,7 @@ void rotate(sBox* box, int amount)
 	box->angle %= 360;
 }
 
-void drawBox(Mode4* g, sBox* box)
+void drawBox(Graphics* g, sBox* box)
 {
 
 	int angle = box->angle;
@@ -99,7 +99,7 @@ int main(void) {
 	// /x1b[line;columnH
 	//iprintf("\x1b[10;10HHello World!\n");
 
-	Mode4 context = Mode4_new();
+	Graphics context = Graphics_new(MODE_4 | BG2_ENABLE);
 
 	sBox box = {
 
@@ -123,10 +123,8 @@ int main(void) {
 
 	};
 
-	SetMode(MODE_4 | BG2_ENABLE);
-
-	context.paletteMem[1] = RGB16(20, 5, 20);
-	context.paletteMem[2] = RGB16(0, 31, 31);
+	context.paletteBuffer[1] = RGB16(20, 5, 20);
+	context.paletteBuffer[2] = RGB16(0, 31, 31);
 
 	
 	while (1)
