@@ -24,6 +24,8 @@
 *.exe
 *.out
 *.app
+*.elf
+*.gba
 *.i*86
 *.x86_64
 *.hex
