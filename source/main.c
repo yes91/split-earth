@@ -128,7 +128,6 @@ int main(void) {
 	context.paletteMem[1] = RGB16(20, 5, 20);
 	context.paletteMem[2] = RGB16(0, 31, 31);
 
-	
 	while (1)
 	{
 		clearScreen(&context, 1);
@@ -137,7 +136,7 @@ int main(void) {
 
 		key_poll();
 		
-		rotate(&box, 2 * key_tri_horz());
+		rotate(&box, 3.5 * key_tri_horz());
 
 		int forward = key_tri_vert();
 
@@ -151,5 +150,3 @@ int main(void) {
 		flip(&context);
 	}
 }
-
-
