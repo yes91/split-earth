@@ -1,5 +1,5 @@
 		
-		GBFS Test!
+        GBFS Test!
 
-	This is the GBFS test for
-	project split-earth!
+    This is the GBFS test
+    for project split-earth!

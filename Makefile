@@ -21,7 +21,7 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 GRAPHICS	:=	gfx
-RESOURCES   :=  res
+RESOURCES	:=  res
 INCLUDES	:=
 
 #---------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 BMPFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.bmp)))
-export RESFILES	:=  $(foreach dir,$(RESOURCES),$(CURDIR)/$(RESOURCES)/$(notdir $(wildcard $(dir)/*.*)))
+export RESFILES	:=  $(foreach dir,$(RESOURCES), $(wildcard $(CURDIR)/$(dir)/*.*))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -134,6 +134,8 @@ DEPENDS	:=	$(OFILES:.o=.d)
 $(OUTPUT).gba	:	$(OUTPUT).elf res.gbfs
 
 $(OUTPUT).elf	:	$(OFILES)
+
+res.gbfs		:	$(RESFILES)
 
 #---------------------------------------------------------------------------------
 # Override rule to handle the gbfs file
