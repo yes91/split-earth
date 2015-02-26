@@ -2,12 +2,15 @@
 #include <gba_video.h>
 #include <gba_interrupt.h>
 #include <gba_systemcalls.h>
+#include <pcx.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "fastmath.h"
 #include "Graphics.h"
 #include "tonc_input.h"
 #include "plot.h"
+
+#include <gbfs.h>
 
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
@@ -78,28 +81,9 @@ int fixed_mul(int fa, int fb, int shift)
 	return (fa * fb) >> shift;
 }
 
-
-
-//---------------------------------------------------------------------------------
-// Program entry point
-//---------------------------------------------------------------------------------
-int main(void) {
-//---------------------------------------------------------------------------------
-
-
-	// the vblank interrupt must be enabled for VBlankIntrWait() to work
-	// since the default dispatcher handles the bios flags no vblank handler
-	// is required
-	irqInit();
-	irqEnable(IRQ_VBLANK);
-
-	//consoleDemoInit();
-
-	// ansi escape sequence to set print co-ordinates
-	// /x1b[line;columnH
-	//iprintf("\x1b[10;10HHello World!\n");
-
-	Graphics context = Graphics_new(MODE_4 | BG2_ENABLE);
+void boxTest(Graphics* context)
+{
+	Graphics_setMode(context, MODE_4 | BG2_ENABLE);
 
 	sBox box = {
 
@@ -123,16 +107,14 @@ int main(void) {
 
 	};
 
-	context.paletteBuffer[1] = RGB16(20, 5, 20);
-	context.paletteBuffer[2] = RGB16(0, 31, 31);
+	context->paletteBuffer[1] = RGB16(20, 5, 20);
+	context->paletteBuffer[2] = RGB16(0, 31, 31);
 
 	while (1)
 	{
-		clearScreen(&context, 1);
+		clearScreen(context, 1);
 
-		drawBox(&context, &box);
-
-		key_poll();
+		drawBox(context, &box);
 		
 		rotate(&box, 3.5 * key_tri_horz());
 
@@ -145,6 +127,75 @@ int main(void) {
 
 		VBlankIntrWait();
 
-		flip(&context);
+		flip(context);
 	}
 }
+<<<<<<< HEAD
+=======
+
+void consoleTest(const GBFS_FILE* dat, Graphics* context)
+{
+	Graphics_setMode(context, 0);
+
+	consoleDemoInit();
+
+	// ansi escape sequence to set print co-ordinates
+	// /x1b[line;columnH
+
+	const char * text = NULL;
+	u32 text_len = 0;
+
+	text = gbfs_get_obj(dat, "test.txt", &text_len);
+	
+	iprintf("\x1b[5;5H%s\n", text);
+
+	while(1) { VBlankIntrWait(); }
+}
+
+void imageTest(const GBFS_FILE* dat, Graphics* context)
+{
+	Graphics_setMode(context, MODE_4 | BG2_ENABLE);
+
+	const u8* image = gbfs_get_obj(dat, "splash.pcx", NULL);
+	
+	DecodePCX(image, (u16*)context->currentBuffer, (u16*)context->paletteBuffer);
+
+	flip(context);
+	
+	while(1) { VBlankIntrWait(); }
+}
+
+//---------------------------------------------------------------------------------
+void VblankInterrupt()
+//---------------------------------------------------------------------------------
+{
+	key_poll();
+}
+
+//---------------------------------------------------------------------------------
+// Program entry point
+//---------------------------------------------------------------------------------
+int main(void) {
+//---------------------------------------------------------------------------------
+
+
+	// the vblank interrupt must be enabled for VBlankIntrWait() to work
+	// since the default dispatcher handles the bios flags no vblank handler
+	// is required
+	irqInit();
+	irqSet(IRQ_VBLANK, VblankInterrupt);
+	irqEnable(IRQ_VBLANK);
+
+	const GBFS_FILE* dat = find_first_gbfs_file(find_first_gbfs_file);
+
+	Graphics context = Graphics_new(0);
+
+	//boxTest(&context);
+    //imageTest(dat, &context);
+	consoleTest(dat, &context);
+
+	return 0;
+}
+
+
+>>>>>>> master
