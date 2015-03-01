@@ -16,7 +16,7 @@ void Sprite_draw(Sprite* self)
 	OBJATTR* obj = self->oam;
 	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(self->y);
 	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(self->x);
-	obj->attr2 = self->gfxID;
+	obj->attr2 = self->gfxID * 8;
 }
 
 void Sprite_destroy(Sprite* self)

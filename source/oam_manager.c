@@ -43,7 +43,7 @@ void oam_copy(OBJATTR* dst, const OBJATTR* src, u32 count)
 // NOTE: while struct-copying is the Right Thing to do here, 
 //   there's a strange bug in DKP that sometimes makes it not work
 //   If you see problems, just use the word-copy version.
-#if 0
+#if 1
     while(count--)
         *dst++ = *src++;
 #else
