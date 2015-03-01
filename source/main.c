@@ -9,6 +9,10 @@
 #include "Graphics.h"
 #include "tonc_input.h"
 #include "plot.h"
+#include "Sprite.h"
+#include <gba_sprites.h>
+#include "oam_manager.h"
+#include <string.h>
 
 #include <gbfs.h>
 
@@ -147,7 +151,7 @@ void consoleTest(const GBFS_FILE* dat, Graphics* context)
 
 	text = gbfs_get_obj(dat, "test.txt", &text_len);
 	
-	iprintf("\x1b[5;5H%s\n", text);
+	iprintf("\x1b[5;5H%s\nSize of text in bytes: %u\n", text, text_len);
 
 	while(1) { VBlankIntrWait(); }
 }
@@ -165,9 +169,53 @@ void imageTest(const GBFS_FILE* dat, Graphics* context)
 	while(1) { VBlankIntrWait(); }
 }
 
+// tile 8x8@4bpp: 32bytes; 8 ints
+typedef struct { u32 data[8];  } TILE, TILE4;
+// d-tile: double-sized tile (8bpp)
+typedef struct { u32 data[16]; } TILE8;
+// tile block: 32x16 tiles, 16x16 d-tiles
+typedef TILE  CHARBLOCK[512];
+typedef TILE8 CHARBLOCK8[256];
+
+#define tile_mem  ( (CHARBLOCK*)0x06000000)
+#define tile8_mem ((CHARBLOCK8*)0x06000000)
+
+void spriteTest(const GBFS_FILE* dat, Graphics* context)
+{
+	Graphics_setMode(context, OBJ_ENABLE | OBJ_1D_MAP );
+
+	u32 metr_size = 0;
+	const u8* metr_tiles = gbfs_get_obj(dat, "metr.tiles", &metr_size);
+
+	u32 metr_pal_len = 0;
+	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
+
+	memcpy(&tile_mem[4][0], metr_tiles, metr_size);
+    memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
+
+	init_oam();
+
+	Sprite sprite = Sprite_new(50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+
+	while (1)
+	{
+		sprite.x += 2 * key_tri_horz();
+		sprite.y += 2 * key_tri_vert();
+
+		Sprite_draw(&sprite);
+
+		VBlankIntrWait();
+
+		update_oam();
+	}
+
+	Sprite_destroy(&sprite);
+}
+
 //---------------------------------------------------------------------------------
 void VblankInterrupt()
 //---------------------------------------------------------------------------------
+
 {
 	key_poll();
 }
@@ -192,7 +240,9 @@ int main(void) {
 
 	//boxTest(&context);
     //imageTest(dat, &context);
-	consoleTest(dat, &context);
+	//consoleTest(dat, &context);
+
+	spriteTest(dat, &context);
 
 	return 0;
 }
