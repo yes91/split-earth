@@ -13,6 +13,7 @@
 #include <gba_sprites.h>
 #include "oam_manager.h"
 #include <string.h>
+#include "debug.h"
 
 #include <gbfs.h>
 
@@ -193,14 +194,24 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 
 	init_oam();
 
-	Sprite sprite = Sprite_new(50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+	Sprite sprite;
+
+	Sprite_construct(&sprite, 50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+
+	Sprite sprite1;
+
+	Sprite_construct(&sprite1, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
 
 	while (1)
 	{
+		debug_print("x: %d\n", sprite.x);
+
 		sprite.x += 2 * key_tri_horz();
 		sprite.y += 2 * key_tri_vert();
 
 		Sprite_draw(&sprite);
+
+		Sprite_draw(&sprite1);
 
 		VBlankIntrWait();
 

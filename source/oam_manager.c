@@ -16,12 +16,13 @@ typedef enum OBJ_ALLOC_STATUS
 OBJ_ALLOC_STATUS obj_alloc_map[MAX_OBJ];
 
 void* obj_alloc(void)
-{
+{    
 	int i;
 	for(i = 0; i <= MAX_OBJ && obj_alloc_map[i] != FREE; i++);
-	
+
 	if(i != MAX_OBJ)
 	{
+        obj_alloc_map[i] = USED;
 		return &obj_buffer[i];
 	}
 
