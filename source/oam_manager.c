@@ -3,6 +3,7 @@
 #include <gba_sprites.h>
 #include <gba_types.h>
 #include <string.h>
+#include "debug.h"
 
 OBJATTR obj_buffer[MAX_OBJ];
 OBJAFFINE* obj_aff_buffer= (OBJAFFINE*)obj_buffer;
@@ -32,6 +33,10 @@ void* obj_alloc(void)
 void obj_free(void* oam)
 {
 	u8 index = (u8)((oam - (void*)obj_buffer) / sizeof(OBJATTR));
+    
+    #ifdef DEBUG
+        debug_print("Computed index: %d\n", index);
+    #endif
 
 	if(obj_alloc_map[index] != USED) return;
 

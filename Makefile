@@ -21,7 +21,7 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 GRAPHICS	:=	gfx
-RESOURCES	:=  res
+RESOURCES	:= 	res
 INCLUDES	:=
 
 #---------------------------------------------------------------------------------
@@ -29,13 +29,18 @@ INCLUDES	:=
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-g -Wall -O3\
+CFLAGS	:=	-Wall -O3\
 		-mcpu=arm7tdmi -mtune=arm7tdmi\
  		-fomit-frame-pointer\
 		-ffast-math \
 		$(ARCH)
 
 CFLAGS	+=	$(INCLUDE)
+
+DEBUG ?= 1
+ifeq ($(DEBUG), 1)
+    CFLAGS += -DDEBUG -g
+endif
 
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
@@ -74,7 +79,7 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 BMPFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.bmp)))
-export RESFILES	:=  $(foreach dir,$(RESOURCES), $(wildcard $(CURDIR)/$(dir)/*.*))
+export RESFILES	:= 	$(foreach dir,$(RESOURCES), $(wildcard $(CURDIR)/$(dir)/*.*))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -135,7 +140,7 @@ $(OUTPUT).gba	:	$(OUTPUT).elf res.gbfs
 
 $(OUTPUT).elf	:	$(OFILES)
 
-res.gbfs		:	$(RESFILES)
+res.gbfs	:	$(RESFILES)
 
 #---------------------------------------------------------------------------------
 # Override rule to handle the gbfs file
