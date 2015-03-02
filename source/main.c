@@ -13,6 +13,7 @@
 #include <gba_sprites.h>
 #include "oam_manager.h"
 #include <string.h>
+#include "debug.h"
 
 #include <gbfs.h>
 
@@ -193,23 +194,39 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 	memcpy(&tile_mem[4][0], metr_tiles, metr_size);
     memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
 
-	init_oam();
+	Sprite sprite;
 
-	Sprite sprite = Sprite_new(50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+	Sprite_construct(&sprite, 50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+
+	Sprite sprite1;
+
+	Sprite_construct(&sprite1, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+
+	u32 t = 0;
 
 	while (1)
 	{
+		#ifdef DEBUG
+			debug_print("x: %d y: %d\n", sprite.x, sprite.y);
+		#endif
+
 		sprite.x += 2 * key_tri_horz();
 		sprite.y += 2 * key_tri_vert();
 
+		sprite1.x = 100 + (50 * cos(t) >> 14);
+		sprite1.y = 50 + (50 * sin(t) >> 14);
+
+		t = (t + 1) % 360;
+
 		Sprite_draw(&sprite);
 
-		VBlankIntrWait();
+		Sprite_draw(&sprite1);
 
-		update_oam();
+		VBlankIntrWait();
 	}
 
 	Sprite_destroy(&sprite);
+	Sprite_destroy(&sprite1);
 }
 
 //---------------------------------------------------------------------------------
@@ -218,6 +235,7 @@ void VblankInterrupt()
 
 {
 	key_poll();
+	update_oam();
 }
 
 //---------------------------------------------------------------------------------
@@ -237,6 +255,8 @@ int main(void) {
 	const GBFS_FILE* dat = find_first_gbfs_file(find_first_gbfs_file);
 
 	Graphics context = Graphics_new(0);
+
+	init_oam();
 
 	//boxTest(&context);
     //imageTest(dat, &context);

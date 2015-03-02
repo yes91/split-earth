@@ -10,7 +10,7 @@ typedef struct Sprite
 	int gfxID; 
 } Sprite;
 
-Sprite Sprite_new(int x, int y, u16 shape, u16 size, int gfxID);
+void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int gfxID);
 
 void Sprite_draw(Sprite* self);
 

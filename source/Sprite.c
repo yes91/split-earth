@@ -2,13 +2,15 @@
 
 #include "oam_manager.h"
 
-Sprite Sprite_new(int x, int y, u16 shape, u16 size, int gfxID)
+void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int gfxID)
 {
-	Sprite sprite = { x, y, obj_alloc(), gfxID };
-	sprite.oam->attr0 = shape | OBJ_Y(y);
-	sprite.oam->attr1 = size | OBJ_X(x);
-	sprite.oam->attr2 = gfxID;
-	return sprite;
+	self->x = x;
+	self->y = y;
+	self->oam = obj_alloc();
+	self->gfxID = gfxID;
+	self->oam->attr0 = shape | OBJ_Y(y);
+	self->oam->attr1 = size | OBJ_X(x);
+	self->oam->attr2 = gfxID;
 }
 
 void Sprite_draw(Sprite* self)
