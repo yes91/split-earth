@@ -14,6 +14,10 @@
 *.la
 *.lo
 
+# Directories
+/build
+/libs
+
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
@@ -26,6 +30,7 @@
 *.app
 *.elf
 *.gba
+split-earth.bin
 *.i*86
 *.x86_64
 *.hex
