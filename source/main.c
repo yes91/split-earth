@@ -20,6 +20,8 @@
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
 
+int frame = 0;
+
 void WaitForVblank(void)
 {
 	while (REG_VCOUNT >= 160);   // wait till VDraw
@@ -204,9 +206,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 
 	while (1)
 	{
-		#ifdef DEBUG
-			debug_print("x: %d y: %d\n", sprite.x, sprite.y);
-		#endif
+		if(frame % 60 == 0) debug_print("x: %d y: %d\n", sprite.x, sprite.y);
 
 		sprite.x += 2 * key_tri_horz();
 		sprite.y += 2 * key_tri_vert();
@@ -219,6 +219,11 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 		Sprite_draw(&sprite);
 
 		Sprite_draw(&sprite1);
+
+		if(key_hit(KEY_A))
+		{
+			sprite.oam->attr1 ^= ATTR1_FLIP_X;
+		}
 
 		VBlankIntrWait();
 	}
@@ -234,6 +239,7 @@ void VblankInterrupt()
 {
 	key_poll();
 	update_oam();
+	frame++;
 }
 
 //---------------------------------------------------------------------------------

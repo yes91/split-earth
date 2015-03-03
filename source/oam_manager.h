@@ -5,9 +5,9 @@
 
 #define MAX_OBJ 128
 
-void* obj_alloc(void);
+OBJATTR* obj_alloc(void);
 
-void obj_free(void* oam);
+void obj_free(OBJATTR* obj);
 
 void init_oam(void);
 

@@ -3,6 +3,12 @@
 
 #define DEBUG_PRINT_BUFSIZE 256 
 
-char* debug_print(char* fmt, ...);
+#ifdef DEBUG
+#define debug_print(fmt, ...) gba_printf((fmt), __VA_ARGS__)
+#else
+#define debug_print(fmt, ...)
+#endif
+
+char* gba_printf(char* fmt, ...);
 
 #endif
