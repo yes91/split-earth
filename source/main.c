@@ -247,7 +247,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 		sprite1.x = 100 + (50 * cos(t) >> 14);
 		sprite1.y = 50 + (50 * sin(t) >> 14);
 
-		sprite.anim += bit_tribool(key_hit(-1), KI_R, KI_L);
+		sprite.pal += bit_tribool(key_hit(-1), KI_R, KI_L);
 
 		t = (t + 1) % 360;
 
