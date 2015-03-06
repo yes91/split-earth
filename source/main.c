@@ -260,6 +260,11 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 			sprite.oam->attr1 ^= ATTR1_FLIP_X;
 		}
 
+		if(key_hit(KEY_B))
+		{
+			sprite.oam->attr1 ^= ATTR1_FLIP_Y;
+		}
+
 		VBlankIntrWait();
 	}
 
