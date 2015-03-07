@@ -60,6 +60,14 @@ void Sprite_draw(Sprite* self)
 void Sprite_destroy(Sprite* self)
 {
 	obj_free(self->oam);
+	
+	int i;
+	for(i = 0; i < self->anims.count; i++)
+	{
+		free(self->anims.clips[i].frames);
+	}
+
+	free(self->anims.clips);
 }
 
 void AnimContainer_decode(AnimContainer* dst, const u8* src)
