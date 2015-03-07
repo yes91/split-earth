@@ -124,7 +124,7 @@ void boxTest(Graphics* context)
 
 		drawBox(context, &box);
 		
-		rotate(&box, 3.5 * key_tri_horz());
+		rotate(&box, 2 * key_tri_horz());
 
 		int forward = key_tri_vert();
 
@@ -272,20 +272,27 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 }
 
 void bgTest(const GBFS_FILE* dat, Graphics* context){
+	
 	Graphics_setMode(context, MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); //Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)
-	REG_BG0CNT = BG_256_COLOR | SCREEN_BASE(31);
+	
+	REG_BG0CNT = SCREEN_BASE(31);
+	
 	u32 tiles_size = 0;
-	const TILE8* bg_tiles = gbfs_get_obj(dat, "BG_Tiles.raw", &tiles_size);
+	const TILE* bg_tiles = gbfs_get_obj(dat, "test_tileset.tiles", &tiles_size);
+	tiles_size /= sizeof(TILE);
+	
 	u32 bg_pal_len = 0;
-	const u16* bg_pal = gbfs_get_obj(dat, "BG_Palette.raw", &bg_pal_len);
+	const u16* bg_pal = gbfs_get_obj(dat, "test_tileset.pal", &bg_pal_len);
+	
 	u32 tilemap_size = 0;
 	const u16* bg_map = gbfs_get_obj(dat, "BG_Maps.raw", &tilemap_size);
-	tilemap_size = tilemap_size/sizeof(TILE8);
-	u16* bgMap = (u16*)SCREEN_BASE_BLOCK(31);
-	u16* bgPal = (u16*)BG_PALETTE;
-	memcpy(bgMap, bg_map, tilemap_size);
-	tile8_copy(&tile8_mem[0][0], bg_tiles, tiles_size);
-	memcpy(bgPal, bg_pal, bg_pal_len);	
+	
+	memcpy(SCREEN_BASE_BLOCK(31), bg_map, tilemap_size);
+	
+	tile_copy(&tile_mem[0][0], bg_tiles, tiles_size);
+	
+	memcpy(BG_PALETTE, bg_pal, bg_pal_len);
+	
 	while(1){ }
 }
 
