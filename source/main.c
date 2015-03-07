@@ -273,7 +273,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 
 void bgTest(const GBFS_FILE* dat, Graphics* context){
 	Graphics_setMode(context, MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); //Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)
-	REG_BG0CNT = BG_16_COLOR | SCREEN_BASE(31);
+	REG_BG0CNT = BG_256_COLOR | SCREEN_BASE(31);
 	u32 tiles_size = 0;
 	const TILE8* bg_tiles = gbfs_get_obj(dat, "BG_Tiles.raw", &tiles_size);
 	u32 bg_pal_len = 0;
