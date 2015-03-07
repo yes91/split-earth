@@ -16,4 +16,6 @@ typedef TILE8 CHARBLOCK8[256];
 
 void tile_copy(TILE* dst, const TILE* src, u32 count);
 
+void tile8_copy(TILE8* dst, const TILE8* src, u32 count);
+
 #endif

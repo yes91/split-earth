@@ -206,7 +206,6 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 	Sprite sprite;
 
 	Sprite_construct(&sprite, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_32, 6, metr_size);
-
 	AnimContainer_decode(&sprite.anims, guy_ani);
 
 	u32 t = 0;
