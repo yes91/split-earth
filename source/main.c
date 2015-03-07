@@ -14,11 +14,14 @@
 #include "oam_manager.h"
 #include <string.h>
 #include "debug.h"
+#include "tile.h"
 
 #include <gbfs.h>
 
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
+
+int frame = 0;
 
 void WaitForVblank(void)
 {
@@ -170,57 +173,98 @@ void imageTest(const GBFS_FILE* dat, Graphics* context)
 	while(1) { VBlankIntrWait(); }
 }
 
-// tile 8x8@4bpp: 32bytes; 8 ints
-typedef struct { u32 data[8];  } TILE, TILE4;
-// d-tile: double-sized tile (8bpp)
-typedef struct { u32 data[16]; } TILE8;
-// tile block: 32x16 tiles, 16x16 d-tiles
-typedef TILE  CHARBLOCK[512];
-typedef TILE8 CHARBLOCK8[256];
 
-#define tile_mem  ( (CHARBLOCK*)0x06000000)
-#define tile8_mem ((CHARBLOCK8*)0x06000000)
 
 void spriteTest(const GBFS_FILE* dat, Graphics* context)
 {
 	Graphics_setMode(context, OBJ_ENABLE | OBJ_1D_MAP );
 
 	u32 metr_size = 0;
-	const u8* metr_tiles = gbfs_get_obj(dat, "metr.tiles", &metr_size);
+	const TILE* metr_tiles = gbfs_get_obj(dat, "metr.tiles", &metr_size);
+	metr_size /= sizeof(TILE);
 
 	u32 metr_pal_len = 0;
 	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
 
-	memcpy(&tile_mem[4][0], metr_tiles, metr_size);
+	u32 guy_size = 0;
+	const TILE* guy_tiles = gbfs_get_obj(dat, "guy.tiles", &guy_size);
+	guy_size /= sizeof(TILE);
+
+	u32 guy_pal_len = 0;
+	const u16* guy_pal = gbfs_get_obj(dat, "guy.pal", &guy_pal_len);
+
+	const u8* guy_ani = gbfs_get_obj(dat, "guy.ani", NULL);	
+
+	tile_copy(&tile_mem[4][0], metr_tiles, metr_size);
     memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
+
+    tile_copy(&tile_mem[4][metr_size], guy_tiles, guy_size);
+    memcpy(&SPRITE_PALETTE[16 * 6], guy_pal, guy_pal_len);
+
+    Sprite sprite1;
+
+	Sprite_construct(&sprite1, 50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0, 0);
 
 	Sprite sprite;
 
-	Sprite_construct(&sprite, 50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
-
-	Sprite sprite1;
-
-	Sprite_construct(&sprite1, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0);
+	Sprite_construct(&sprite, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_32, 6, metr_size);
+	AnimContainer_decode(&sprite.anims, guy_ani);
 
 	u32 t = 0;
 
+	u32 frame = 0;
+
 	while (1)
 	{
-		#ifdef DEBUG
+		if(frame == 60)
+		{
 			debug_print("x: %d y: %d\n", sprite.x, sprite.y);
-		#endif
+			frame = 0;
+		}
 
-		sprite.x += 2 * key_tri_horz();
-		sprite.y += 2 * key_tri_vert();
+		int dx = key_tri_horz();
+		int dy = key_tri_vert();
+
+		static int anim = 0;
+
+		switch(dx)
+		{
+			case -1: anim = 0; break;
+			case 1: anim = 2; break;
+			default:
+				switch(dy)
+				{
+					case 1: anim = 1; break;
+					case -1: anim = 3; break;
+				}
+		}
+
+
+		sprite.x += 2 * dx;
+		sprite.y += 2 * dy;
+
+		Sprite_play(&sprite, anim);
 
 		sprite1.x = 100 + (50 * cos(t) >> 14);
 		sprite1.y = 50 + (50 * sin(t) >> 14);
+
+		sprite.pal += bit_tribool(key_hit(-1), KI_R, KI_L);
 
 		t = (t + 1) % 360;
 
 		Sprite_draw(&sprite);
 
 		Sprite_draw(&sprite1);
+
+		if(key_hit(KEY_A))
+		{
+			sprite.oam->attr1 ^= ATTR1_FLIP_X;
+		}
+
+		if(key_hit(KEY_B))
+		{
+			sprite.oam->attr1 ^= ATTR1_FLIP_Y;
+		}
 
 		VBlankIntrWait();
 	}

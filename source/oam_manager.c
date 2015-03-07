@@ -8,39 +8,45 @@
 OBJATTR obj_buffer[MAX_OBJ];
 OBJAFFINE* obj_aff_buffer= (OBJAFFINE*)obj_buffer;
 
-typedef enum OBJ_ALLOC_STATUS
+void* alloc_stack[MAX_OBJ];
+
+u8 alloc_stack_end;
+
+void* alloc_stack_pop(void)
 {
-	USED,
-	FREE
-} OBJ_ALLOC_STATUS;
+	void* res = NULL;
 
-OBJ_ALLOC_STATUS obj_alloc_map[MAX_OBJ];
-
-void* obj_alloc(void)
-{    
-	int i;
-	for(i = 0; i <= MAX_OBJ && obj_alloc_map[i] != FREE; i++);
-
-	if(i != MAX_OBJ)
+	if(alloc_stack_end != 0) 
 	{
-        obj_alloc_map[i] = USED;
-		return &obj_buffer[i];
+		res = alloc_stack[alloc_stack_end - 1];
+
+		debug_print("OAM stack end: %d\nAllocated pointer: %p\n", alloc_stack_end, res);
+
+		alloc_stack_end--;
 	}
 
-	return NULL;
+	return res;
 }
 
-void obj_free(void* oam)
+void alloc_stack_push(void* data)
 {
-	u8 index = (u8)((oam - (void*)obj_buffer) / sizeof(OBJATTR));
-    
-    #ifdef DEBUG
-        debug_print("Computed index: %d\n", index);
-    #endif
+	if(alloc_stack_end == MAX_OBJ) return;
 
-	if(obj_alloc_map[index] != USED) return;
+	alloc_stack[alloc_stack_end] = data;
+	alloc_stack_end++;
 
-	obj_alloc_map[index] = FREE;
+	debug_print("OAM stack end: %d\nFree'd pointer: %p\n", alloc_stack_end, data);
+}
+
+OBJATTR* obj_alloc(void)
+{    
+	return alloc_stack_pop();
+}
+
+void obj_free(OBJATTR* obj)
+{
+	obj->attr0 = ATTR0_DISABLED;
+	alloc_stack_push(obj);
 }
 
 void oam_copy(OBJATTR* dst, const OBJATTR* src, u32 count)
@@ -65,14 +71,14 @@ void oam_copy(OBJATTR* dst, const OBJATTR* src, u32 count)
 
 void oam_init(OBJATTR* obj, u32 count)
 {
-    u32 nn= count;
-    u32 *dst= (u32*)obj;
+    u32 n = count;
+    u32 *dst = (u32*)obj;
 
     // Hide each object
-    while(nn--)
+    while(n--)
     {
-        *dst++= ATTR0_DISABLED;
-        *dst++= 0;
+        *dst++ = ATTR0_DISABLED;
+        *dst++ = 0;
     }
     // init oam
     oam_copy(OAM, obj, count);
@@ -81,7 +87,14 @@ void oam_init(OBJATTR* obj, u32 count)
 void init_oam(void)
 {
 	oam_init(obj_buffer, MAX_OBJ);
-	memset(obj_alloc_map, FREE, MAX_OBJ);
+
+	int i;
+	for(i = 0; i < MAX_OBJ; i++)
+	{
+		alloc_stack[i] = &obj_buffer[i];
+	}
+
+	alloc_stack_end = MAX_OBJ;
 }
 
 void update_oam(void)

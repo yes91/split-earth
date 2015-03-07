@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-char* debug_print(char* fmt, ...)
+char* gba_printf(char* fmt, ...)
 {
     static char str[DEBUG_PRINT_BUFSIZE];
     va_list arglist;
