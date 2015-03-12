@@ -9,7 +9,7 @@
 
 void Player_construct(
 	Player* self,
-	GBFS_FILE* dat,
+	const GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 
 	const char* anims,
@@ -35,7 +35,7 @@ void Player_construct(
 
 void Player_update(Player* self)
 {
-	Vector2 delta = {key_tri_horz(), key_tri_vert()};
+	Vector2 delta = { key_tri_horz(), key_tri_vert() };
 
 	Direction new_heading = self->heading;
 
@@ -61,8 +61,7 @@ void Player_update(Player* self)
 		Sprite_play(&self->sprite, new_heading - 4);
 	}
 
-	self->sprite.x += 2 * delta.x;
-	self->sprite.y += 2 * delta.y;
+	Vector2_plus_equal(&self->sprite.pos, Vector2_scalar_mult(delta, 2));
 
 	self->sprite.pal += bit_tribool(key_hit(-1), KI_R, KI_L);
 
@@ -77,9 +76,9 @@ void Player_update(Player* self)
 	}
 }
 
-void Player_draw(Player* self)
+void Player_draw(Player* self, int offset_x, int offset_y)
 {
-	Sprite_draw(&self->sprite);
+	Sprite_draw(&self->sprite, offset_x, offset_y);
 }
 
 void Player_destroy(Player* self)

@@ -8,8 +8,8 @@
 
 void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile)
 {
-	self->x = x;
-	self->y = y;
+	self->pos.x = x;
+	self->pos.y = y;
 	self->pal = pal;
 	self->tile = tile;
 	self->anim = 0;
@@ -32,11 +32,11 @@ void Sprite_play(Sprite* self, u32 anim)
 	self->timer = 0;
 }
 
-void Sprite_draw(Sprite* self)
+void Sprite_draw(Sprite* self, int offset_x, int offset_y)
 {
 	OBJATTR* obj = self->oam;
-	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(self->y);
-	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(self->x);
+	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(self->pos.y - offset_y);
+	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(self->pos.x - offset_x);
 
 	if(self->anims.count != 0 && self->timer == 0)
 	{

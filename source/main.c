@@ -16,13 +16,11 @@
 #include "debug.h"
 #include "tile.h"
 #include "Player.h"
+#include "Camera.h"
 
 #include <gbfs.h>
 
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
-
-
-int frame = 0;
 
 void WaitForVblank(void)
 {
@@ -218,26 +216,34 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 
 	u32 frame = 0;
 
+	Camera cam = { CAM_BG0, { 0, 0 }, { 256, 256 }, &player.sprite };
+
 	while (1)
 	{
 		if(frame == 60)
 		{
-			debug_print("x: %d y: %d\n", sprite1.x, sprite1.y);
+			debug_print("x: %d y: %d\n", sprite1.pos.x, sprite1.pos.y);
 			frame = 0;
 		}
 
 		Player_update(&player);
 
-		sprite1.x = 100 + (50 * cos(t) >> 14);
-		sprite1.y = 50 + (50 * sin(t) >> 14);
+		sprite1.pos.x = 128 - 32 + (50 * cos(t) >> 14);
+		sprite1.pos.y = 128 - 32 + (50 * sin(t) >> 14);
+
+		Camera_update(&cam);
 
 		t = (t + 1) % 360;
 
-		Sprite_draw(&sprite1);
+		frame++;
 
-		Player_draw(&player);
+		Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
+
+		Player_draw(&player, cam.pos.x, cam.pos.y);
 
 		VBlankIntrWait();
+
+		Camera_translate(&cam);
 	}
 
 	Player_destroy(&player);

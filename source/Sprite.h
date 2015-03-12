@@ -2,7 +2,7 @@
 #define _Sprite_h_
 
 #include <gba_sprites.h>
-#include <stdarg.h>
+#include "Vector2.h"
 
 typedef struct Frame 
 { 
@@ -26,7 +26,7 @@ typedef struct AnimContainer
 
 typedef struct Sprite
 {
-	int x, y;
+	Vector2 pos;
 	OBJATTR* oam;
 	int pal, tile;
 	int anim;
@@ -37,7 +37,7 @@ typedef struct Sprite
 
 void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile);
 
-void Sprite_draw(Sprite* self);
+void Sprite_draw(Sprite* self, int offset_x, int offset_y);
 
 void Sprite_play(Sprite* self, u32 anim);
 

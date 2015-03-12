@@ -18,7 +18,7 @@ typedef struct Player
 
 void Player_construct(
 	Player* self,
-	struct GBFS_FILE* dat,
+	const struct GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 
 	const char* anims,
@@ -28,7 +28,7 @@ void Player_construct(
 
 void Player_update(Player* self);
 
-void Player_draw(Player* self);
+void Player_draw(Player* self, int offset_x, int offset_y);
 
 void Player_destroy(Player* self);
 
