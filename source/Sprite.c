@@ -28,6 +28,7 @@ void Sprite_play(Sprite* self, u32 anim)
 	if(anim == self->anim) return;
 
 	self->anim = anim;
+	self->frame = 0;
 	self->timer = 0;
 }
 
@@ -60,7 +61,7 @@ void Sprite_draw(Sprite* self)
 void Sprite_destroy(Sprite* self)
 {
 	obj_free(self->oam);
-	
+
 	int i;
 	for(i = 0; i < self->anims.count; i++)
 	{

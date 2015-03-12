@@ -15,6 +15,7 @@
 #include <string.h>
 #include "debug.h"
 #include "tile.h"
+#include "Player.h"
 
 #include <gbfs.h>
 
@@ -175,7 +176,25 @@ void imageTest(const GBFS_FILE* dat, Graphics* context)
 
 void spriteTest(const GBFS_FILE* dat, Graphics* context)
 {
-	Graphics_setMode(context, OBJ_ENABLE | OBJ_1D_MAP );
+	Graphics_setMode(context, MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
+
+	REG_BG0CNT = SCREEN_BASE(31);
+
+	u32 tiles_size = 0;
+	const TILE* bg_tiles = gbfs_get_obj(dat, "test_tileset.tiles", &tiles_size);
+	tiles_size /= sizeof(TILE);
+	
+	u32 bg_pal_len = 0;
+	const u16* bg_pal = gbfs_get_obj(dat, "test_tileset.pal", &bg_pal_len);
+	
+	u32 tilemap_size = 0;
+	const u16* bg_map = gbfs_get_obj(dat, "BG_Maps.raw", &tilemap_size);
+	
+	memcpy(SCREEN_BASE_BLOCK(31), bg_map, tilemap_size);
+	
+	tile_copy(&tile_mem[0][0], bg_tiles, tiles_size);
+	
+	memcpy(BG_PALETTE, bg_pal, bg_pal_len);
 
 	u32 metr_size = 0;
 	const TILE* metr_tiles = gbfs_get_obj(dat, "metr.tiles", &metr_size);
@@ -184,29 +203,16 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 	u32 metr_pal_len = 0;
 	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
 
-	u32 guy_size = 0;
-	const TILE* guy_tiles = gbfs_get_obj(dat, "guy.tiles", &guy_size);
-	guy_size /= sizeof(TILE);
-
-	u32 guy_pal_len = 0;
-	const u16* guy_pal = gbfs_get_obj(dat, "guy.pal", &guy_pal_len);
-
-	const u8* guy_ani = gbfs_get_obj(dat, "guy.ani", NULL);	
-
 	tile_copy(&tile_mem[4][0], metr_tiles, metr_size);
     memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
-
-    tile_copy(&tile_mem[4][metr_size], guy_tiles, guy_size);
-    memcpy(&SPRITE_PALETTE[16 * 6], guy_pal, guy_pal_len);
 
     Sprite sprite1;
 
 	Sprite_construct(&sprite1, 50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0, 0);
 
-	Sprite sprite;
+	Player player;
 
-	Sprite_construct(&sprite, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_32, 6, metr_size);
-	AnimContainer_decode(&sprite.anims, guy_ani);
+	Player_construct(&player, dat, "guy.tiles", "guy.pal", "guy.ani", 6, metr_size);
 
 	u32 t = 0;
 
@@ -216,58 +222,25 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 	{
 		if(frame == 60)
 		{
-			debug_print("x: %d y: %d\n", sprite.x, sprite.y);
+			debug_print("x: %d y: %d\n", sprite1.x, sprite1.y);
 			frame = 0;
 		}
 
-		int dx = key_tri_horz();
-		int dy = key_tri_vert();
-
-		static int anim = 0;
-
-		switch(dx)
-		{
-			case -1: anim = 0; break;
-			case 1: anim = 2; break;
-			default:
-				switch(dy)
-				{
-					case 1: anim = 1; break;
-					case -1: anim = 3; break;
-				}
-		}
-
-
-		sprite.x += 2 * dx;
-		sprite.y += 2 * dy;
-
-		Sprite_play(&sprite, anim);
+		Player_update(&player);
 
 		sprite1.x = 100 + (50 * cos(t) >> 14);
 		sprite1.y = 50 + (50 * sin(t) >> 14);
 
-		sprite.pal += bit_tribool(key_hit(-1), KI_R, KI_L);
-
 		t = (t + 1) % 360;
-
-		Sprite_draw(&sprite);
 
 		Sprite_draw(&sprite1);
 
-		if(key_hit(KEY_A))
-		{
-			sprite.oam->attr1 ^= ATTR1_FLIP_X;
-		}
-
-		if(key_hit(KEY_B))
-		{
-			sprite.oam->attr1 ^= ATTR1_FLIP_Y;
-		}
+		Player_draw(&player);
 
 		VBlankIntrWait();
 	}
 
-	Sprite_destroy(&sprite);
+	Player_destroy(&player);
 	Sprite_destroy(&sprite1);
 }
 
@@ -276,7 +249,7 @@ void bgTest(const GBFS_FILE* dat, Graphics* context){
 	Graphics_setMode(context, MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); //Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)
 	
 	REG_BG0CNT = SCREEN_BASE(31);
-	
+
 	u32 tiles_size = 0;
 	const TILE* bg_tiles = gbfs_get_obj(dat, "test_tileset.tiles", &tiles_size);
 	tiles_size /= sizeof(TILE);
@@ -328,8 +301,8 @@ int main(void) {
 	//boxTest(&context);
     //imageTest(dat, &context);
 	//consoleTest(dat, &context);
-	bgTest(dat, &context);
-	//spriteTest(dat, &context);
+	//bgTest(dat, &context);
+	spriteTest(dat, &context);
 
 	return 0;
 }
