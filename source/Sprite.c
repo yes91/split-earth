@@ -32,11 +32,11 @@ void Sprite_play(Sprite* self, u32 anim)
 	self->timer = 0;
 }
 
-void Sprite_draw(Sprite* self, int offset_x, int offset_y)
+void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y)
 {
 	OBJATTR* obj = self->oam;
-	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(self->pos.y - offset_y);
-	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(self->pos.x - offset_x);
+	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(fx_to_int(self->pos.y - offset_y));
+	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(fx_to_int(self->pos.x - offset_x));
 
 	if(self->anims.count != 0 && self->timer == 0)
 	{

@@ -172,7 +172,7 @@ void imageTest(const GBFS_FILE* dat, Graphics* context)
 
 
 
-void spriteTest(const GBFS_FILE* dat, Graphics* context)
+void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 {
 	Graphics_setMode(context, MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
 
@@ -216,24 +216,26 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context)
 
 	u32 frame = 0;
 
-	Camera cam = { CAM_BG0, { 0, 0 }, { 256, 256 }, &player.sprite };
+	Camera cam = { CAM_BG0, { 0, 0 }, { int_to_fx(256), int_to_fx(256) }, &player.sprite };
 
 	while (1)
 	{
 		if(frame == 60)
 		{
-			debug_print("x: %d y: %d\n", sprite1.pos.x, sprite1.pos.y);
+			debug_print("x: %d y: %d\n", fx_to_int(cam.pos.x), fx_to_int(cam.pos.y));
 			frame = 0;
 		}
 
-		Player_update(&player);
+		Player_update(&player, dt);
 
-		sprite1.pos.x = 128 - 32 + (50 * cos(t) >> 14);
-		sprite1.pos.y = 128 - 32 + (50 * sin(t) >> 14);
+		sprite1.pos.x = int_to_fx(128 - 32 + (50 * cos(t) >> 14));
+		sprite1.pos.y = int_to_fx(128 - 32 + (50 * sin(t) >> 14));
 
 		Camera_update(&cam);
 
-		t = (t + 1) % 360;
+		t++;
+
+		if(t > 360) t = 0;
 
 		frame++;
 
@@ -304,11 +306,13 @@ int main(void) {
 
 	init_oam();
 
+	const FIXED dt = float_to_fx(1.f/60.f);
+
 	//boxTest(&context);
     //imageTest(dat, &context);
 	//consoleTest(dat, &context);
 	//bgTest(dat, &context);
-	spriteTest(dat, &context);
+	spriteTest(dat, &context, dt);
 
 	return 0;
 }

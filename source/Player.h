@@ -2,6 +2,9 @@
 #define _Player_h_
 
 #include "Sprite.h"
+#include "Vector2.h"
+
+#include <gba_types.h>
 
 struct GBFS_FILE;
 
@@ -13,6 +16,7 @@ typedef enum Direction
 typedef struct Player 
 {
 	Sprite sprite;
+	Vector2 velocity;
 	Direction heading;
 } Player;
 
@@ -26,7 +30,7 @@ void Player_construct(
 	int slot
 	);
 
-void Player_update(Player* self);
+void Player_update(Player* self, FIXED dt);
 
 void Player_draw(Player* self, int offset_x, int offset_y);
 

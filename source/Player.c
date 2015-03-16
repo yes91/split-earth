@@ -7,6 +7,8 @@
 #include <gbfs.h>
 #include <gba_video.h>
 
+#include "debug.h"
+
 void Player_construct(
 	Player* self,
 	const GBFS_FILE* dat,
@@ -17,6 +19,9 @@ void Player_construct(
 	int slot
 	)
 {
+	self->velocity = Vector2_create(0, 0);
+	self->heading = NORTH;
+
 	u32 player_size = 0;
 	const TILE* player_tiles = gbfs_get_obj(dat, image, &player_size);
 	player_size /= sizeof(TILE);
@@ -29,29 +34,27 @@ void Player_construct(
     tile_copy(&tile_mem[4][slot], player_tiles, player_size);
     memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
 
-    Sprite_construct(&self->sprite, 100, 50, ATTR0_SQUARE, ATTR1_SIZE_32, palette, slot);
+    Sprite_construct(&self->sprite, int_to_fx(100), int_to_fx(50), ATTR0_SQUARE, ATTR1_SIZE_32, palette, slot);
 	AnimContainer_decode(&self->sprite.anims, player_ani);
 }
 
-void Player_update(Player* self)
+void Player_update(Player* self, FIXED dt)
 {
-	Vector2 delta = { key_tri_horz(), key_tri_vert() };
+	Vector2 delta = { int_to_fx(key_tri_horz()), int_to_fx(key_tri_vert()) };
+	self->velocity = Vector2_scalar_mult(delta, int_to_fx(120)); //2 px/f * 60 f/s = 120 px/s
 
 	Direction new_heading = self->heading;
 
 	if(Vector2_mag_sq(&delta) > 0)
 	{
-		switch(delta.x)
-		{
-			case 1: new_heading = EAST; break;
-			case -1: new_heading = WEST; break;
-			default:
-				switch(delta.y)
-				{
-					case 1: new_heading = SOUTH; break;
-					case -1: new_heading = NORTH; break;
-				} 
-		}
+		if(delta.x > 0)
+			new_heading = EAST;
+		else if(delta.x < 0)
+			new_heading = WEST;
+		else if(delta.y > 0)
+			new_heading = SOUTH;
+		else if(delta.y < 0)
+			new_heading = NORTH;
 
 		self->heading = new_heading;
 		Sprite_play(&self->sprite, new_heading);
@@ -61,19 +64,34 @@ void Player_update(Player* self)
 		Sprite_play(&self->sprite, new_heading - 4);
 	}
 
-	Vector2_plus_equal(&self->sprite.pos, Vector2_scalar_mult(delta, 2));
+	FIXED dodge = 100 * int_to_fx(bit_tribool(key_held(-1), KI_R, KI_L));
 
-	self->sprite.pal += bit_tribool(key_hit(-1), KI_R, KI_L);
+	static FIXED timer = 0;
 
-	if(key_hit(KEY_A))
+	if(dodge != 0)
 	{
-		self->sprite.oam->attr1 ^= ATTR1_FLIP_X;
+		timer += dt;
+	}
+	else
+	{
+		timer = 0;
 	}
 
-	if(key_hit(KEY_B))
+	Vector2 forward;
+	switch(self->heading)
 	{
-		self->sprite.oam->attr1 ^= ATTR1_FLIP_Y;
+		case NORTH: forward = Vector2_create(int_to_fx(0), int_to_fx(-1)); break;
+		case SOUTH: forward = Vector2_create(int_to_fx(0), int_to_fx(1)); break;
+		case EAST: forward = Vector2_create(int_to_fx(1), int_to_fx(0)); break;
+		case WEST: forward = Vector2_create(int_to_fx(-1), int_to_fx(0)); break;
 	}
+
+	if(timer > 0 && timer < float_to_fx(0.5f))
+		self->velocity = Vector2_scalar_mult(Vector2_perp(&forward), dodge);
+
+	Vector2_plus_equal(&self->sprite.pos, Vector2_scalar_mult(self->velocity, dt));
+
+	self->sprite.pal -= key_hit(KEY_SELECT);
 }
 
 void Player_draw(Player* self, int offset_x, int offset_y)

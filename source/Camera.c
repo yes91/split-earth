@@ -22,28 +22,29 @@ void Camera_construct(
 void Camera_update(Camera* self)
 {
 	if (self->target == NULL) return;
+
+	const FIXED half_axis = int_to_fx(16);
+	const Vector2 half_vector = Vector2_create(half_axis, half_axis);
 	
-	Vector2 offset = 
-	{  
-		self->target->pos.x - SCREEN_WIDTH/2 + 16, //TODO: Remove hardcoded half axes
-		self->target->pos.y - SCREEN_HEIGHT/2 + 16
-	};
+	Vector2 target_center = Vector2_add(self->target->pos, half_vector);
 
-	int max_x = self->bounds.x - SCREEN_WIDTH;
-	int max_y = self->bounds.y - SCREEN_HEIGHT;
+	const Vector2 screen_size = Vector2_create(int_to_fx(SCREEN_WIDTH), int_to_fx(SCREEN_HEIGHT));
+	
+	Vector2 offset = Vector2_sub(target_center, Vector2_scalar_mult(screen_size, float_to_fx(0.5f)));
 
-	offset.x = clamp(0, max_x, offset.x);
-	offset.y = clamp(0, max_y, offset.y);
+	Vector2 max = Vector2_sub(self->bounds, screen_size);
+
+	offset.x = clamp(0, max.x, offset.x);
+	offset.y = clamp(0, max.y, offset.y);
 
 	self->pos = offset;
 }
 
-#define CAMERA_BG_TRANS(num) if(bgs & CAM_BG##num) { BG_OFFSET[num].x = self->pos.x; BG_OFFSET[num].y = self->pos.y; }
+#define CAMERA_BG_TRANS(num) if(self->bgs & CAM_BG##num) \
+	{ BG_OFFSET[num].x = fx_to_int(self->pos.x); BG_OFFSET[num].y = fx_to_int(self->pos.y); }
 
 void Camera_translate(Camera* self)
 {
-	u32 bgs = self->bgs;
-	
 	CAMERA_BG_TRANS(0);
 	CAMERA_BG_TRANS(1);
 	CAMERA_BG_TRANS(2);

@@ -35,9 +35,9 @@ typedef struct Sprite
 	AnimContainer anims;
 } Sprite;
 
-void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile);
+void Sprite_construct(Sprite* self, FIXED x, FIXED y, u16 shape, u16 size, int pal, int tile);
 
-void Sprite_draw(Sprite* self, int offset_x, int offset_y);
+void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y);
 
 void Sprite_play(Sprite* self, u32 anim);
 
