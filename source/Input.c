@@ -1,4 +1,4 @@
 // Globals to hold the key state
 #include <gba_types.h>
 
-u16 __key_curr=0, __key_prev=0;
+u16 key_curr_=0, key_prev_=0;

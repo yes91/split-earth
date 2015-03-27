@@ -16,12 +16,16 @@ typedef enum Direction
 typedef struct Player 
 {
 	Sprite sprite;
+	int z;
 	Vector2 velocity;
+	Vector2 forward;
 	Direction heading;
 } Player;
 
 void Player_construct(
 	Player* self,
+	int x,
+	int y,
 	const struct GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 
@@ -32,7 +36,7 @@ void Player_construct(
 
 void Player_update(Player* self, FIXED dt);
 
-void Player_draw(Player* self, int offset_x, int offset_y);
+void Player_draw(Player* self, FIXED offset_x, FIXED offset_y);
 
 void Player_destroy(Player* self);
 

@@ -3,6 +3,7 @@
 #include "oam_manager.h"
 #include "tile.h"
 #include <stdlib.h>
+#include <string.h>
 
 #include "debug.h"
 
@@ -71,16 +72,13 @@ void Sprite_destroy(Sprite* self)
 	free(self->anims.clips);
 }
 
+#define READ(src, type) *(type*)src; src += sizeof(type)
+
 void AnimContainer_decode(AnimContainer* dst, const u8* src)
 {
-	u32 width = *((u32*) src);
-	src += sizeof(u32);
-
-	u32 height = *((u32*) src);
-	src += sizeof(u32);
-
-	u32 anim_count = *((u32*) src);
-	src += sizeof(u32);
+	u32 width = READ(src, u32);
+	u32 height = READ(src, u32);
+	u32 anim_count = READ(src, u32);
 	
 	dst->width = width;
 	dst->height = height;
@@ -91,18 +89,12 @@ void AnimContainer_decode(AnimContainer* dst, const u8* src)
 	for(i = 0; i < anim_count; i++)
 	{
 		Animation anim;
-		anim.count = *(u32*)src;
-		src += sizeof(u32);
-		anim.frames = malloc(sizeof(Frame) * anim.count);
+		anim.count = READ(src, u32);
+		u32 size = sizeof(Frame) * anim.count;
+		anim.frames = malloc(size);
 
-		Frame* from = (Frame*)src;
-		Frame* to = anim.frames;
-
-		int count = anim.count;
-		while(count--)
-			*to++ = *from++;
-
-		src += sizeof(Frame) * anim.count;
+		memcpy(anim.frames, src, size);
+		src += size;
 
 		dst->clips[i] = anim;
 	}

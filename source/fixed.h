@@ -8,6 +8,7 @@ typedef s32 FIXED;
 #define FIX_SHIFT 8
 #define FIX_SCALE (1<<FIX_SHIFT)
 #define FIX_SCALEF ((float)FIX_SCALE)
+#define FIX_MASK (FIX_SCALE-1)
 
 #define FIXED_PI ((FIXED)(3.14159f * FIX_SCALEF))
 
@@ -53,6 +54,14 @@ static inline FIXED fx_div(FIXED a, FIXED b)
 
 FIXED fx_log2(FIXED x);
 
+FIXED fx_exp2(FIXED x);
+
+FIXED fx_log(FIXED x);
+
+FIXED fx_exp(FIXED x);
+
 FIXED fx_sqrt(FIXED n);
+
+FIXED fx_inv_sqrt(FIXED n);
 
 #endif

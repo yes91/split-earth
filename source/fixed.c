@@ -1,4 +1,8 @@
 #include "fixed.h"
+#include <gba_base.h>
+
+#define FIXED_INVLN2 369 //1 / ln(2) = 1.442695 as an 8 bit fraction
+#define FIXED_LN2 177 // ln(2) = 0.693147 as an 8 bit fraction
 
 FIXED fx_log2(FIXED x)
 {
@@ -34,14 +38,32 @@ FIXED fx_log2(FIXED x)
 	return y;
 }
 
-FIXED fx_sqrt(FIXED n) 
+extern FIXED fx_exp2_lut_bin[FIX_SCALE];
+
+FIXED fx_exp2(FIXED x)
 {
-    FIXED s = (n + FIX_SCALE * FIX_SCALE) >> 1;
-    u32 i;
- 
-    for (i = 0; i < FIX_SHIFT; i++) {
-        s = (s + fx_div(n, s)) >> 1;
-    }
- 
-    return s;
+	FIXED b, f;
+	b = 1 << (FIX_SHIFT + (x >> FIX_SHIFT)); //calculate base
+	f = fx_exp2_lut_bin[x & FIX_MASK]; //lookup fractional part
+	return fx_mul(b, f);
+}
+
+FIXED fx_log(FIXED x)
+{
+	return fx_mul(fx_log2(x), FIXED_LN2);
+}
+
+FIXED fx_exp(FIXED x)
+{
+	return fx_exp2(fx_mul(x, FIXED_INVLN2));
+}
+
+FIXED fx_sqrt(FIXED n)
+{
+	return fx_exp2(fx_mul(FIX_SCALE/2, fx_log2(n)));
+}
+
+FIXED fx_inv_sqrt(FIXED n)
+{
+    return fx_exp2(fx_mul(-(FIX_SCALE/2), fx_log2(n)));
 }

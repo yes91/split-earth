@@ -16,12 +16,18 @@ FIXED Vector2_mag_sq(const Vector2* vec);
 
 void Vector2_normalize(Vector2* vec);
 
+void Vector2_negate_equal(Vector2* vec);
+
+Vector2 Vector2_negate(Vector2 vec);
+
 Vector2 Vector2_add(Vector2 lhs, Vector2 rhs);
 
 Vector2 Vector2_sub(Vector2 lhs, Vector2 rhs);
 
-Vector2 Vector2_scalar_mult(Vector2 lhs, int rhs);
+Vector2 Vector2_scalar_mult(Vector2 lhs, FIXED rhs);
 
 void Vector2_plus_equal(Vector2* lhs, Vector2 rhs);
+
+void Vector2_times_equal(Vector2* lhs, FIXED rhs);
 
 #endif

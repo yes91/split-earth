@@ -29,7 +29,7 @@ INCLUDES	:=
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-Wall -O3\
+CFLAGS	:=	-Werror -Wall -O3\
 		-mcpu=arm7tdmi -mtune=arm7tdmi\
  		-fomit-frame-pointer\
 		-ffast-math \
@@ -50,7 +50,7 @@ LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-lgba -lgbfs
+LIBS	:=	-lgba -lgbfs -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -111,7 +111,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 #---------------------------------------------------------------------------------
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean run
+.PHONY: $(BUILD) clean run tests
 
 #---------------------------------------------------------------------------------
 $(BUILD):
@@ -123,11 +123,15 @@ all	: $(BUILD)
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).bin $(TARGET).gba
-
 #---------------------------------------------------------------------------------
 run:
 	@echo running ...
 	@vba $(TARGET).gba
+#---------------------------------------------------------------------------------
+tests:
+	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
+	@[ -d $(BUILD)/tests ] || mkdir -p $(BUILD)/tests
+	@make test_build --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 #---------------------------------------------------------------------------------
 else
 
@@ -141,6 +145,18 @@ $(OUTPUT).gba	:	$(OUTPUT).elf res.gbfs
 $(OUTPUT).elf	:	$(OFILES)
 
 res.gbfs	:	$(RESFILES)
+
+TEST_SRC	:=	$(wildcard ../tests/*_tests.c)
+TEST_OFILES :=	$(patsubst %.c,%.o,$(TEST_SRC))
+TESTS		:=	$(patsubst %.c,%.elf,$(TEST_SRC))
+
+$(TESTS):	$(TEST_OFILES)
+	@$(LD)  $(LDFLAGS) -specs=gba.specs $< $(filter-out main.o, $(OFILES)) $(LIBPATHS) $(LIBS) -o tests/$@
+
+.PHONY: test_build
+
+test_build : $(OFILES) $(TESTS)
+	sh ../tests/runtests.sh
 
 #---------------------------------------------------------------------------------
 # Override rule to handle the gbfs file
@@ -157,9 +173,8 @@ res.gbfs	:	$(RESFILES)
 # GBFS file rule
 #---------------------------------------------------------------------------------
 res.gbfs:
-	@gbfs res.gbfs $(RESFILES)
 #---------------------------------------------------------------------------------
-
+	@gbfs res.gbfs $(RESFILES)
 #---------------------------------------------------------------------------------
 # The bin2o rule should be copied and modified
 # for each extension used in the data directories

@@ -21,10 +21,23 @@ FIXED Vector2_mag_sq(const Vector2* vec)
 
 void Vector2_normalize(Vector2* vec)
 {
-	FIXED mag = fx_sqrt(Vector2_mag_sq(vec));
+	FIXED norm_sq = Vector2_mag_sq(vec);
 
-	vec->x = fx_div(vec->x, mag);
-	vec->y = fx_div(vec->x, mag);
+	if(norm_sq == 0) return;
+
+	Vector2_times_equal(vec, fx_inv_sqrt(norm_sq));
+}
+
+void Vector2_negate_equal(Vector2* vec)
+{
+	vec->x = -vec->x;
+	vec->y = -vec->y;
+}
+
+Vector2 Vector2_negate(Vector2 vec)
+{
+	Vector2 result = { -vec.x, -vec.y };
+	return result;
 }
 
 Vector2 Vector2_add(Vector2 lhs, Vector2 rhs)
@@ -49,4 +62,10 @@ void Vector2_plus_equal(Vector2* lhs, Vector2 rhs)
 {
 	lhs->x += rhs.x;
 	lhs->y += rhs.y;
+}
+
+void Vector2_times_equal(Vector2* lhs, FIXED rhs)
+{
+	lhs->x = fx_mul(lhs->x, rhs);
+	lhs->y = fx_mul(lhs->y, rhs);
 }

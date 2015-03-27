@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "fastmath.h"
 #include "Graphics.h"
-#include "tonc_input.h"
+#include "Input.h"
 #include "plot.h"
 #include "Sprite.h"
 #include <gba_sprites.h>
@@ -22,20 +22,12 @@
 
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
-void WaitForVblank(void)
-{
-	while (REG_VCOUNT >= 160);   // wait till VDraw
-	while (REG_VCOUNT < 160);    // wait till VBlank
-}
-
 typedef struct
 {
 
 	int x, y;
 
 }sPoint2D;
-
-
 
 typedef struct
 {
@@ -67,8 +59,8 @@ void drawBox(Graphics* g, sBox* box)
 	
 	int i;
 	for(i = 0; i < 4; i++) {
-		p[i].x = ( ( cos(angle) * (box->p[i].x >> 14) - sin(angle) * (box->p[i].y >> 14) ) ) + box->x;
-		p[i].y = ( ( sin(angle) * (box->p[i].x >> 14) + cos(angle) * (box->p[i].y >> 14) ) ) + box->y;
+		p[i].x = ( ( fx_cos(angle) * (box->p[i].x >> 14) - fx_sin(angle) * (box->p[i].y >> 14) ) ) + box->x;
+		p[i].y = ( ( fx_sin(angle) * (box->p[i].x >> 14) + fx_cos(angle) * (box->p[i].y >> 14) ) ) + box->y;
 	}
 
  
@@ -82,11 +74,6 @@ void drawBox(Graphics* g, sBox* box)
 }
 
 //WaitForVblank and Draw line not shown...code is same as before
-
-int fixed_mul(int fa, int fb, int shift)
-{
-	return (fa * fb) >> shift;
-}
 
 void boxTest(Graphics* context)
 {
@@ -129,8 +116,8 @@ void boxTest(Graphics* context)
 
 		if(key_held(KEY_A)) forward *= 3;
 
-		box.x += forward * cos(box.angle);
-		box.y += forward * sin(box.angle);
+		box.x += forward * fx_cos(box.angle);
+		box.y += forward * fx_sin(box.angle);
 
 		VBlankIntrWait();
 
@@ -210,7 +197,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 	Player player;
 
-	Player_construct(&player, dat, "guy.tiles", "guy.pal", "guy.ani", 6, metr_size);
+	Player_construct(&player, 100, 50, dat, "guy.tiles", "guy.pal", "guy.ani", 6, metr_size);
 
 	u32 t = 0;
 
@@ -222,20 +209,18 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 	{
 		if(frame == 60)
 		{
-			debug_print("x: %d y: %d\n", fx_to_int(cam.pos.x), fx_to_int(cam.pos.y));
+			//debug_print("x: %d y: %d\n", fx_to_int(cam.pos.x), fx_to_int(cam.pos.y));
 			frame = 0;
 		}
 
 		Player_update(&player, dt);
 
-		sprite1.pos.x = int_to_fx(128 - 32 + (50 * cos(t) >> 14));
-		sprite1.pos.y = int_to_fx(128 - 32 + (50 * sin(t) >> 14));
+		sprite1.pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
+		sprite1.pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));
 
 		Camera_update(&cam);
 
-		t++;
-
-		if(t > 360) t = 0;
+		t = (t + 1) % 360;
 
 		frame++;
 
