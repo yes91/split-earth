@@ -9,6 +9,7 @@
 #include "fastmath.h"
 #include "util.h"
 #include "debug.h"
+#include "oam_manager.h"
 
 void Player_construct(
 	Player* self,
@@ -115,7 +116,7 @@ void Player_update(Player* self, FIXED dt)
 	debug_print("target / || target || = (%f, %f)\n", 
 		fx_to_float(target.x), fx_to_float(target.y));*/
 
-	Vector2_plus_equal(&self->sprite.pos, Vector2_scalar_mult(self->velocity, dt));
+	Vector2_plus_equal(&self->sprite.base->pos, Vector2_scalar_mult(self->velocity, dt));
 
 	if(key_hit(KEY_SELECT))
 		self->sprite.pal -= 1;

@@ -2,6 +2,7 @@
 #include "Sprite.h"
 #include <gba_video.h>
 #include "util.h"
+#include "oam_manager.h"
 
 void Camera_construct(
 	Camera* self, 
@@ -26,7 +27,7 @@ void Camera_update(Camera* self)
 	const FIXED half_axis = int_to_fx(16);
 	const Vector2 half_vector = Vector2_create(half_axis, half_axis);
 	
-	Vector2 target_center = Vector2_add(self->target->pos, half_vector);
+	Vector2 target_center = Vector2_add(self->target->base->pos, half_vector);
 
 	const Vector2 screen_size = Vector2_create(int_to_fx(SCREEN_WIDTH), int_to_fx(SCREEN_HEIGHT));
 	

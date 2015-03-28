@@ -9,8 +9,8 @@
 
 void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile)
 {
-	self->pos.x = x;
-	self->pos.y = y;
+	self->base->pos.x = x;
+	self->base->pos.y = y;
 	self->pal = pal;
 	self->tile = tile;
 	self->anim = 0;
@@ -18,10 +18,10 @@ void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, 
 	self->timer = 0;
 	self->anims.count = 0;
 
-	self->oam = obj_alloc();
-	self->oam->attr0 = shape | OBJ_Y(y);
-	self->oam->attr1 = size | OBJ_X(x);
-	self->oam->attr2 = OBJ_PALETTE(pal) | OBJ_CHAR(tile);
+	self->base = spr_alloc();
+	self->base->oam.attr0 = shape | OBJ_Y(y);
+	self->base->oam.attr1 = size | OBJ_X(x);
+	self->base->oam.attr2 = OBJ_PALETTE(pal) | OBJ_CHAR(tile);
 }
 
 void Sprite_play(Sprite* self, u32 anim)
@@ -35,9 +35,9 @@ void Sprite_play(Sprite* self, u32 anim)
 
 void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y)
 {
-	OBJATTR* obj = self->oam;
-	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(fx_to_int(self->pos.y - offset_y));
-	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(fx_to_int(self->pos.x - offset_x));
+	OBJATTR* obj = &self->base->oam;
+	obj->attr0 = (obj->attr0 &~ 0x00FF) | OBJ_Y(fx_to_int(self->base->pos.y - offset_y));
+	obj->attr1 = (obj->attr1 &~ 0x01FF) | OBJ_X(fx_to_int(self->base->pos.x - offset_x));
 
 	if(self->anims.count != 0 && self->timer == 0)
 	{
@@ -61,7 +61,7 @@ void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y)
 
 void Sprite_destroy(Sprite* self)
 {
-	obj_free(self->oam);
+	spr_free(self->base);
 
 	int i;
 	for(i = 0; i < self->anims.count; i++)

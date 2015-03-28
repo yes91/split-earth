@@ -1,8 +1,9 @@
 #ifndef _Sprite_h_
 #define _Sprite_h_
 
-#include <gba_sprites.h>
 #include "Vector2.h"
+
+struct SPR_BASE;
 
 typedef struct Frame 
 { 
@@ -26,8 +27,7 @@ typedef struct AnimContainer
 
 typedef struct Sprite
 {
-	Vector2 pos;
-	OBJATTR* oam;
+	struct SPR_BASE* base;
 	int pal, tile;
 	int anim;
 	int frame;

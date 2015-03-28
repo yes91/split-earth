@@ -215,8 +215,8 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 		Player_update(&player, dt);
 
-		sprite1.pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
-		sprite1.pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));
+		sprite1.base->pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
+		sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));
 
 		Camera_update(&cam);
 
