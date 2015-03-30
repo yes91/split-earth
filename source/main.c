@@ -193,11 +193,27 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
     Sprite sprite1;
 
-	Sprite_construct(&sprite1, 50, 50, ATTR0_SQUARE, ATTR1_SIZE_64, 0, 0);
+	Sprite_construct(&sprite1, 
+		int_to_fx(50), 
+		int_to_fx(50),
+		ATTR0_SQUARE, 
+		ATTR1_SIZE_64, 
+		0,
+		0
+		);
 
 	Player player;
 
-	Player_construct(&player, 100, 50, dat, "guy.tiles", "guy.pal", "guy.ani", 6, metr_size);
+	Player_construct(&player, 
+		int_to_fx(100),
+		int_to_fx(50),
+		dat, 
+		"guy.tiles", 
+		"guy.pal", 
+		"guy.ani", 
+		6, 
+		metr_size
+		);
 
 	u32 t = 0;
 

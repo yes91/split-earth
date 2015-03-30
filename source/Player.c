@@ -13,8 +13,8 @@
 
 void Player_construct(
 	Player* self,
-	int x,
-	int y,
+	FIXED x,
+	FIXED y,
 	const GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 

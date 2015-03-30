@@ -8,48 +8,32 @@
 /*OBJATTR obj_buffer[MAX_OBJ];
 OBJAFFINE* obj_aff_buffer= (OBJAFFINE*)obj_buffer;*/
 
-SPR_BASE sprites[MAX_OBJ];
-u8 index_buffer[MAX_OBJ];
-
-void* alloc_stack[MAX_OBJ];
-
-u8 alloc_stack_end;
-
-void* alloc_stack_pop(void)
+typedef union Block // Sprite memory block
 {
-	void* res = NULL;
+	union Block * next;
+	SPR_BASE sprite;
+} Block;
 
-	if(alloc_stack_end != 0) 
-	{
-		res = alloc_stack[alloc_stack_end - 1];
+static Block sprite_mem[MAX_OBJ];
 
-		debug_print("OAM stack end: %d\nAllocated pointer: %p\n", alloc_stack_end, res);
+static Block* head = NULL;
 
-		alloc_stack_end--;
-	}
+static u8 index_buffer[MAX_OBJ];
 
-	return res;
+void* spr_alloc(void)
+{   
+	void* result = head;
+	debug_print("Allocated pointer: %p\n", result);
+	head = head->next;
+	return result;
 }
 
-void alloc_stack_push(void* data)
+void spr_free(void* ptr)
 {
-	if(alloc_stack_end == MAX_OBJ) return;
-
-	alloc_stack[alloc_stack_end] = data;
-	alloc_stack_end++;
-
-	debug_print("OAM stack end: %d\nFree'd pointer: %p\n", alloc_stack_end, data);
-}
-
-SPR_BASE* spr_alloc(void)
-{    
-	return alloc_stack_pop();
-}
-
-void spr_free(SPR_BASE* obj)
-{
-	obj->oam.attr0 = ATTR0_DISABLED;
-	alloc_stack_push(obj);
+	Block* block = ptr;
+	block->sprite.oam.attr0 = ATTR0_DISABLED;
+	block->next = head;
+	head = block;
 }
 
 void oam_copy(OBJATTR* dst, const SPR_BASE* src, u32 count)
@@ -95,15 +79,18 @@ void oam_init(SPR_BASE* obj, u32 count)
 
 void init_oam(void)
 {
-	oam_init(sprites, MAX_OBJ);
+	oam_init((SPR_BASE*)sprite_mem, MAX_OBJ);
 
+	head = sprite_mem;
+	Block* current = head;
 	int i;
-	for(i = 0; i < MAX_OBJ; i++)
+	for(i = 1; i < MAX_OBJ; i++)
 	{
-		alloc_stack[i] = &sprites[i];
+		current->next = &sprite_mem[i];
+		current = current->next;
 	}
 
-	alloc_stack_end = MAX_OBJ;
+	current->next = NULL;
 }
 
 int get_key(SPR_BASE sprite)
@@ -136,6 +123,6 @@ IWRAM_CODE void id_sort_shell(SPR_BASE sprites[], u8 ids[], int count)
 
 void update_oam(void)
 {
-	id_sort_shell(sprites, index_buffer, MAX_OBJ);
-	oam_copy(OAM, sprites, MAX_OBJ);
+	id_sort_shell((SPR_BASE*)sprite_mem, index_buffer, MAX_OBJ);
+	oam_copy(OAM, (SPR_BASE*)sprite_mem, MAX_OBJ);
 }

@@ -12,9 +12,9 @@ typedef struct SPR_BASE
 
 #define MAX_OBJ 128
 
-SPR_BASE* spr_alloc(void);
+void* spr_alloc(void);
 
-void spr_free(SPR_BASE* spr);
+void spr_free(void* ptr);
 
 void init_oam(void);
 

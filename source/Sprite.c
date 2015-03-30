@@ -7,10 +7,8 @@
 
 #include "debug.h"
 
-void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile)
+void Sprite_construct(Sprite* self, FIXED x, FIXED y, u16 shape, u16 size, int pal, int tile)
 {
-	self->base->pos.x = x;
-	self->base->pos.y = y;
 	self->pal = pal;
 	self->tile = tile;
 	self->anim = 0;
@@ -19,6 +17,8 @@ void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, 
 	self->anims.count = 0;
 
 	self->base = spr_alloc();
+	self->base->pos.x = x;
+	self->base->pos.y = y;
 	self->base->oam.attr0 = shape | OBJ_Y(y);
 	self->base->oam.attr1 = size | OBJ_X(x);
 	self->base->oam.attr2 = OBJ_PALETTE(pal) | OBJ_CHAR(tile);
