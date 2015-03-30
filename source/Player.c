@@ -24,6 +24,7 @@ void Player_construct(
 	)
 {
 	self->velocity = Vector2_create(0, 0);
+	self->forward = Vector2_create(0, int_to_fx(-1));
 	self->heading = NORTH;
 	self->z = 0;
 
