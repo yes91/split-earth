@@ -12,6 +12,7 @@
 #include "Sprite.h"
 #include <gba_sprites.h>
 #include "oam_manager.h"
+#include "spr_vram_manager.h"
 #include <string.h>
 #include "debug.h"
 #include "tile.h"
@@ -188,7 +189,8 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 	u32 metr_pal_len = 0;
 	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
 
-	tile_copy(&tile_mem[4][0], metr_tiles, metr_size);
+	u16 metroid_sprite = spr_vram_alloc(sizeof(TILE) * metr_size);
+	tile_copy(spr_mem(metroid_sprite), metr_tiles, metr_size);
     memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
 
     Sprite sprite1;
@@ -197,10 +199,9 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 		int_to_fx(50), 
 		int_to_fx(50),
 		ATTR0_SQUARE, 
-		ATTR1_SIZE_64, 
+		ATTR1_SIZE_64,
 		0,
-		0
-		);
+		metroid_sprite);
 
 	Player player;
 
@@ -211,9 +212,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 		"guy.tiles", 
 		"guy.pal", 
 		"guy.ani", 
-		6, 
-		metr_size
-		);
+		6);
 
 	u32 t = 0;
 
@@ -232,7 +231,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 		Player_update(&player, dt);
 
 		sprite1.base->pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
-		sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));
+		sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));				
 
 		Camera_update(&cam);
 
@@ -306,6 +305,7 @@ int main(void) {
 	Graphics context = Graphics_new(0);
 
 	init_oam();
+	spr_vram_init();
 
 	const FIXED dt = float_to_fx(1.f/60.f);
 

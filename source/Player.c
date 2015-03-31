@@ -10,6 +10,7 @@
 #include "util.h"
 #include "debug.h"
 #include "oam_manager.h"
+#include "spr_vram_manager.h"
 
 void Player_construct(
 	Player* self,
@@ -19,8 +20,7 @@ void Player_construct(
 	const char* image, 
 	const char* pal, 
 	const char* anims,
-	int palette,
-	int slot
+	int palette
 	)
 {
 	self->velocity = Vector2_create(0, 0);
@@ -37,10 +37,20 @@ void Player_construct(
 
 	const u8* player_ani = gbfs_get_obj(dat, anims, NULL);
 
-    tile_copy(&tile_mem[4][slot], player_tiles, player_size);
+	self->sprite_graphics = spr_vram_alloc(sizeof(TILE) * player_size);
+    tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
     memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
 
-    Sprite_construct(&self->sprite, x, y, ATTR0_SQUARE, ATTR1_SIZE_32, palette, slot);
+    
+
+    Sprite_construct(
+    	&self->sprite, 
+    	x, 
+    	y, 
+    	ATTR0_SQUARE, 
+    	ATTR1_SIZE_32, 
+    	palette, 
+    	self->sprite_graphics);
 	AnimContainer_decode(&self->sprite.anims, player_ani);
 }
 
@@ -130,5 +140,6 @@ void Player_draw(Player* self, FIXED offset_x, FIXED offset_y)
 
 void Player_destroy(Player* self)
 {
+	spr_vram_free(self->sprite_graphics);
 	Sprite_destroy(&self->sprite);
 }

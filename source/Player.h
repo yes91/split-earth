@@ -20,6 +20,7 @@ typedef struct Player
 	Vector2 velocity;
 	Vector2 forward;
 	Direction heading;
+	u16 sprite_graphics;
 } Player;
 
 void Player_construct(
@@ -30,8 +31,7 @@ void Player_construct(
 	const char* image, 
 	const char* pal, 
 	const char* anims,
-	int palette,
-	int slot
+	int palette
 	);
 
 void Player_update(Player* self, FIXED dt);
