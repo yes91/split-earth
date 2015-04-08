@@ -30,9 +30,11 @@ void Player_construct(
 	const struct GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 
-	const char* anims,
+	const char* sprite,
 	int palette
 	);
+
+void Player_load(Player* self, FIXED x, FIXED y, const struct GBFS_FILE* dat, const char* player);
 
 void Player_update(Player* self, FIXED dt);
 

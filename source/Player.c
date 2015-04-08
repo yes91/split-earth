@@ -1,7 +1,7 @@
 #include "Player.h"
 #include "tile.h"
 #include "Input.h"
-#include <string.h>
+#include "filesys.h"
 
 #include <gbfs.h>
 #include <gba_video.h>
@@ -19,7 +19,7 @@ void Player_construct(
 	const GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 
-	const char* anims,
+	const char* sprite,
 	int palette
 	)
 {
@@ -35,23 +35,52 @@ void Player_construct(
 	u32 player_pal_len = 0;
 	const u16* player_pal = gbfs_get_obj(dat, pal, &player_pal_len);
 
-	const u8* player_ani = gbfs_get_obj(dat, anims, NULL);
+	const u8* player_sprite = gbfs_get_obj(dat, sprite, NULL);
 
 	self->sprite_graphics = spr_vram_alloc(sizeof(TILE) * player_size);
     tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
     memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
 
-    
+    Sprite_decode(&self->sprite, self->sprite_graphics, player_sprite);
+	self->sprite.base->pos.x = x;
+	self->sprite.base->pos.y = y;
+}
 
-    Sprite_construct(
-    	&self->sprite, 
-    	x, 
-    	y, 
-    	ATTR0_SQUARE, 
-    	ATTR1_SIZE_32, 
-    	palette, 
-    	self->sprite_graphics);
-	AnimContainer_decode(&self->sprite.anims, player_ani);
+void Player_load(Player* self, FIXED x, FIXED y, const struct GBFS_FILE* dat, const char* player)
+{
+	self->velocity = Vector2_create(0, 0);
+	self->forward = Vector2_create(0, int_to_fx(-1));
+	self->heading = NORTH;
+	self->z = 0;
+	
+	const u8* src = gbfs_get_obj(dat, player, NULL);
+	
+	u32 length;
+	src += read_data(&length, src, sizeof length);
+
+	char image[length + 1];
+	src += read_string(image, src, length);
+
+	src += read_data(&length, src, sizeof length);
+
+	char pal[length + 1];
+	src += read_string(pal, src, length);
+
+	u32 player_size = 0;
+	const TILE* player_tiles = gbfs_get_obj(dat, image, &player_size);
+	player_size /= sizeof(TILE);
+
+	u32 player_pal_len = 0;
+	const u16* player_pal = gbfs_get_obj(dat, pal, &player_pal_len);
+
+	self->sprite_graphics = spr_vram_alloc(sizeof(TILE) * player_size);
+    tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
+
+    Sprite_decode(&self->sprite, self->sprite_graphics, src);
+	self->sprite.base->pos.x = x;
+	self->sprite.base->pos.y = y;
+
+	memcpy(&SPRITE_PALETTE[16 * self->sprite.pal], player_pal, player_pal_len);
 }
 
 static FIXED quad_interp(FIXED t, FIXED max)

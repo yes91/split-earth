@@ -195,30 +195,35 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
     Sprite sprite1;
 
-	Sprite_construct(&sprite1, 
+	Sprite_construct(
+		&sprite1, 
 		int_to_fx(50), 
 		int_to_fx(50),
 		ATTR0_SQUARE, 
 		ATTR1_SIZE_64,
 		0,
-		metroid_sprite);
+		metroid_sprite );
 
 	Player player;
 
-	Player_construct(&player, 
+	Player_load(
+		&player,
 		int_to_fx(100),
 		int_to_fx(50),
-		dat, 
-		"guy.tiles", 
-		"guy.pal", 
-		"guy.ani", 
-		6);
+		dat,
+		"test_player.player"
+		);
 
 	u32 t = 0;
 
 	u32 frame = 0;
 
-	Camera cam = { CAM_BG0, { 0, 0 }, { int_to_fx(256), int_to_fx(256) }, &player.sprite };
+	Camera cam = { 
+		CAM_BG0, 
+		{ 0, 0 }, 
+		{ int_to_fx(256), int_to_fx(256) }, 
+		&player.sprite 
+	};
 
 	while (1)
 	{
@@ -239,6 +244,11 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 		frame++;
 
+		if(key_hit(KEY_B))
+		{
+			player.sprite.pal -= 1;
+		}
+
 		Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
 
 		Player_draw(&player, cam.pos.x, cam.pos.y);
@@ -254,8 +264,9 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 void bgTest(const GBFS_FILE* dat, Graphics* context){
 	
-	Graphics_setMode(context, MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); //Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)
-	
+	//Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)	
+	Graphics_setMode(context, MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); 
+
 	REG_BG0CNT = SCREEN_BASE(31);
 
 	u32 tiles_size = 0;

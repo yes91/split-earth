@@ -3,6 +3,8 @@
 
 #include "Vector2.h"
 
+struct GBFS_FILE;
+
 struct SPR_BASE;
 
 typedef struct Frame 
@@ -19,8 +21,6 @@ typedef struct Animation
 
 typedef struct AnimContainer
 {
-	u32 width;
-	u32 height;
 	u32 count;
 	Animation* clips;
 } AnimContainer;
@@ -29,20 +29,28 @@ typedef struct Sprite
 {
 	struct SPR_BASE* base;
 	int pal, tile;
+	int tiles;
 	int anim;
 	int frame;
 	int timer;
 	AnimContainer anims;
 } Sprite;
 
-void Sprite_construct(Sprite* self, FIXED x, FIXED y, u16 shape, u16 size, int pal, int tile);
+void Sprite_construct(
+	Sprite* self, 
+	FIXED x, 
+	FIXED y, 
+	u16 shape, 
+	u16 size, 
+	int pal, 
+	int tile );
+
+void Sprite_decode(Sprite* self, int tile, const u8* src);
 
 void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y);
 
 void Sprite_play(Sprite* self, u32 anim);
 
 void Sprite_destroy(Sprite* self);
-
-void AnimContainer_decode(AnimContainer* dst, const u8* src);
 
 #endif

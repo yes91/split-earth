@@ -2,15 +2,20 @@
 
 #include "oam_manager.h"
 #include "tile.h"
-#include <stdlib.h>
-#include <string.h>
+#include "filesys.h"
 
 #include "debug.h"
 
-void Sprite_construct(Sprite* self, FIXED x, FIXED y, u16 shape, u16 size, int pal, int tile)
+static int tile_count(u16 size, u16 shape)
+{
+	return 1 << ((size >> 13) - (shape >> 14 > 0));
+}
+
+void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile)
 {
 	self->pal = pal;
 	self->tile = tile;
+	self->tiles = tile_count(size, shape);
 	self->anim = 0;
 	self->frame = 0;
 	self->timer = 0;
@@ -22,6 +27,11 @@ void Sprite_construct(Sprite* self, FIXED x, FIXED y, u16 shape, u16 size, int p
 	self->base->oam.attr0 = shape | OBJ_Y(y);
 	self->base->oam.attr1 = size | OBJ_X(x);
 	self->base->oam.attr2 = OBJ_PALETTE(pal) | OBJ_CHAR(tile);
+}
+
+void Sprite_toggle(Sprite* self)
+{
+	self->base->oam.attr0 ^= ATTR0_DISABLED;
 }
 
 void Sprite_play(Sprite* self, u32 anim)
@@ -42,7 +52,7 @@ void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y)
 	if(self->anims.count != 0 && self->timer == 0)
 	{
 		Frame current = self->anims.clips[self->anim].frames[self->frame];
-		u32 offset = current.index * self->anims.width * self->anims.height;
+		u32 offset = current.index * self->tiles;
 		
 		obj->attr2 = OBJ_PALETTE(self->pal) | OBJ_CHAR(self->tile + offset);
 		self->frame = (self->frame + 1) % self->anims.clips[self->anim].count;
@@ -72,16 +82,24 @@ void Sprite_destroy(Sprite* self)
 	free(self->anims.clips);
 }
 
-#define READ(src, type) *(type*)src; src += sizeof(type)
-
-void AnimContainer_decode(AnimContainer* dst, const u8* src)
+void Sprite_decode(Sprite* self, int tile, const u8* src)
 {
-	u32 width = READ(src, u32);
-	u32 height = READ(src, u32);
-	u32 anim_count = READ(src, u32);
+	u16 size;
+	src += read_data(&size, src, sizeof size);
+
+	u16 shape;
+	src += read_data(&shape, src, sizeof shape);
+
+	u8 pal;
+	src += read_data(&pal, src, sizeof pal);
+
+	Sprite_construct(self, 0, 0, shape, size, pal, tile);
 	
-	dst->width = width;
-	dst->height = height;
+	u32 anim_count;
+	src += read_data(&anim_count, src, sizeof anim_count);
+
+	AnimContainer* dst = &self->anims;
+
 	dst->count = anim_count;
 
 	dst->clips = malloc(sizeof(Animation) * anim_count);
@@ -89,14 +107,13 @@ void AnimContainer_decode(AnimContainer* dst, const u8* src)
 	for(i = 0; i < anim_count; i++)
 	{
 		Animation anim;
-		anim.count = READ(src, u32);
+		src += read_data(&anim.count, src, sizeof anim.count);
+
 		u32 size = sizeof(Frame) * anim.count;
 		anim.frames = malloc(size);
 
-		memcpy(anim.frames, src, size);
-		src += size;
+		src += read_data(anim.frames, src, size);
 
 		dst->clips[i] = anim;
 	}
-
 }
