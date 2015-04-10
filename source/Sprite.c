@@ -30,8 +30,8 @@ void Sprite_construct(Sprite* self, Vector2 pos, u16 shape, u16 size, int pal, i
 	self->base = spr_alloc();
 
 	u32 lwidth = log_tile_width(size, shape);	// This is in log base 2
-	u32 hwidth = 1 << (lwidth - 1);
-	u32 hheight = self->tiles >> (lwidth + 1);
+	u32 hwidth = 8 << (lwidth - 1);
+	u32 hheight = self->tiles * 8 >> (lwidth + 1);
 	Vector2 halves = Vector2_create(int_to_fx(hwidth), int_to_fx(hheight));
 	self->base->pos = pos;
 	self->base->mid = halves;
