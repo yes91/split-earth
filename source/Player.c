@@ -5,6 +5,7 @@
 
 #include <gbfs.h>
 #include <gba_video.h>
+#include <gba_systemcalls.h>
 
 #include "fastmath.h"
 #include "util.h"
@@ -38,10 +39,10 @@ void Player_construct(
 	const u8* player_sprite = gbfs_get_obj(dat, sprite, NULL);
 
 	self->sprite_graphics = spr_vram_alloc(sizeof(TILE) * player_size);
-    tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
-    memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
+	tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
+	memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
 
-    Sprite_decode(&self->sprite, self->sprite_graphics, player_sprite);
+	Sprite_decode(&self->sprite, self->sprite_graphics, player_sprite);
 	self->sprite.base->pos.x = x;
 	self->sprite.base->pos.y = y;
 }
@@ -80,7 +81,7 @@ void Player_load(Player* self, FIXED x, FIXED y, const struct GBFS_FILE* dat, co
 	self->sprite.base->pos.x = x;
 	self->sprite.base->pos.y = y;
 
-	memcpy(&SPRITE_PALETTE[16 * self->sprite.pal], player_pal, player_pal_len);
+	CpuFastSet(player_pal, &SPRITE_PALETTE[16 * self->sprite.pal], COPY16 | (player_pal_len >> 1));
 }
 
 static FIXED quad_interp(FIXED t, FIXED max)

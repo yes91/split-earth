@@ -26,17 +26,18 @@
 		irqEnable(IRQ_VBLANK);\
 		consoleDemoInit();\
 		iprintf("\x1b[10;10H%s", "RUNNING TESTS...");\
-        debug("----\nRUNNING TESTS\n", "");\
+        debug("----\nRUNNING TESTS%s\n", "");\
         char *result = name();\
         if (result != 0) {\
             debug("FAILED: %s\n", result);\
         }\
         else {\
-            debug("\nALL TESTS PASSED\n", "");\
+            debug("\nALL TESTS PASSED%s\n", "");\
         }\
     	debug("Tests run: %d\n", tests_run);\
-		debug("END\n", "");\
-		exit(result != 0);\
+		debug("END%s\n", "");\
+		Stop();\
+		return 0;\
 }
 
 int tests_run;
