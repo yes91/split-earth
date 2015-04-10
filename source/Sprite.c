@@ -11,7 +11,13 @@ static int tile_count(u16 size, u16 shape)
 	return 1 << ((size >> 13) - (shape >> 14 > 0));
 }
 
-void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, int tile)
+// This is in log base 2
+static int log_tile_width(u16 size, u16 shape)
+{
+	return ((size >> 14) >> (shape >> 14 == 2));
+}
+
+void Sprite_construct(Sprite* self, Vector2 pos, u16 shape, u16 size, int pal, int tile)
 {
 	self->pal = pal;
 	self->tile = tile;
@@ -22,10 +28,16 @@ void Sprite_construct(Sprite* self, int x, int y, u16 shape, u16 size, int pal, 
 	self->anims.count = 0;
 
 	self->base = spr_alloc();
-	self->base->pos.x = x;
-	self->base->pos.y = y;
-	self->base->oam.attr0 = shape | OBJ_Y(y);
-	self->base->oam.attr1 = size | OBJ_X(x);
+
+	u32 lwidth = log_tile_width(size, shape);	// This is in log base 2
+	u32 hwidth = 1 << (lwidth - 1);
+	u32 hheight = self->tiles >> (lwidth + 1);
+	Vector2 halves = Vector2_create(int_to_fx(hwidth), int_to_fx(hheight));
+	self->base->pos = pos;
+	self->base->mid = halves;
+	self->base->half = halves;
+	self->base->oam.attr0 = shape | OBJ_Y(fx_to_int(pos.y));
+	self->base->oam.attr1 = size | OBJ_X(fx_to_int(pos.x));
 	self->base->oam.attr2 = OBJ_PALETTE(pal) | OBJ_CHAR(tile);
 }
 
@@ -93,7 +105,7 @@ void Sprite_decode(Sprite* self, int tile, const u8* src)
 	u8 pal;
 	src += read_data(&pal, src, sizeof pal);
 
-	Sprite_construct(self, 0, 0, shape, size, pal, tile);
+	Sprite_construct(self, Vector2_create(0, 0), shape, size, pal, tile);
 	
 	u32 anim_count;
 	src += read_data(&anim_count, src, sizeof anim_count);

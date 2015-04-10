@@ -7,6 +7,8 @@
 typedef struct SPR_BASE
 {
 	Vector2 pos;
+	Vector2 mid;
+	Vector2 half;
 	OBJATTR oam;
 } SPR_BASE;
 
