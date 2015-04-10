@@ -197,8 +197,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 	Sprite_construct(
 		&sprite1, 
-		int_to_fx(50), 
-		int_to_fx(50),
+		Vector2_float(50.f, 50.f),
 		ATTR0_SQUARE, 
 		ATTR1_SIZE_64,
 		0,
@@ -208,8 +207,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 	Player_load(
 		&player,
-		int_to_fx(100),
-		int_to_fx(50),
+		Vector2_float(100.f, 50.f),
 		dat,
 		"test_player.player"
 		);

@@ -47,7 +47,7 @@ void Player_construct(
 	self->sprite.base->pos.y = y;
 }
 
-void Player_load(Player* self, FIXED x, FIXED y, const struct GBFS_FILE* dat, const char* player)
+void Player_load(Player* self, Vector2 pos, const struct GBFS_FILE* dat, const char* player)
 {
 	self->velocity = Vector2_create(0, 0);
 	self->forward = Vector2_create(0, int_to_fx(-1));
@@ -75,11 +75,10 @@ void Player_load(Player* self, FIXED x, FIXED y, const struct GBFS_FILE* dat, co
 	const u16* player_pal = gbfs_get_obj(dat, pal, &player_pal_len);
 
 	self->sprite_graphics = spr_vram_alloc(sizeof(TILE) * player_size);
-    tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
+	tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
 
-    Sprite_decode(&self->sprite, self->sprite_graphics, src);
-	self->sprite.base->pos.x = x;
-	self->sprite.base->pos.y = y;
+	Sprite_decode(&self->sprite, self->sprite_graphics, src);
+	self->sprite.base->pos = pos;
 
 	CpuFastSet(player_pal, &SPRITE_PALETTE[16 * self->sprite.pal], COPY16 | (player_pal_len >> 1));
 }

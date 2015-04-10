@@ -4,7 +4,7 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM)
+$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
 include $(DEVKITARM)/gba_rules
@@ -21,6 +21,7 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 GRAPHICS	:=	gfx
+SCHEMA		:=	schema
 RESOURCES	:= 	res
 INCLUDES	:=
 
@@ -147,7 +148,7 @@ $(OUTPUT).elf	:	$(OFILES)
 res.gbfs	:	$(RESFILES)
 
 TEST_SRC	:=	$(wildcard ../tests/*_tests.c)
-TEST_OFILES :=	$(patsubst %.c,%.o,$(TEST_SRC))
+TEST_OFILES	:=	$(patsubst %.c,%.o,$(TEST_SRC))
 TESTS		:=	$(patsubst %.c,%.elf,$(TEST_SRC))
 
 $(TESTS):	$(TEST_OFILES)
@@ -202,9 +203,9 @@ res.gbfs:
 # add additional rules like this for each image extension
 # you use in the graphics folders 
 #---------------------------------------------------------------------------------
-%.s %.h	: %.bmp %.grit
+%.tiles %.pal : %.bmp %.grit
 #---------------------------------------------------------------------------------
-	grit $< -fts -o$*
+	grit $< -fts -o$(RESOURCES)/$*
 
 -include $(DEPENDS)
 
