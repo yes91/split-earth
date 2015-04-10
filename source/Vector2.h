@@ -10,6 +10,8 @@ typedef struct Vector2
 
 Vector2 Vector2_create(FIXED x, FIXED y);
 
+Vector2 Vector2_float(float x, float y);
+
 Vector2 Vector2_perp(const Vector2* vec);
 
 FIXED Vector2_mag_sq(const Vector2* vec);

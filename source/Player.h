@@ -34,7 +34,7 @@ void Player_construct(
 	int palette
 	);
 
-void Player_load(Player* self, FIXED x, FIXED y, const struct GBFS_FILE* dat, const char* player);
+void Player_load(Player* self, Vector2 pos, const struct GBFS_FILE* dat, const char* player);
 
 void Player_update(Player* self, FIXED dt);
 

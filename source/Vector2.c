@@ -6,6 +6,11 @@ Vector2 Vector2_create(FIXED x, FIXED y)
 	return result;
 }
 
+Vector2 Vector2_float(float x, float y)
+{
+	return Vector2_create(float_to_fx(x), float_to_fx(y));
+}
+
 Vector2 Vector2_perp(const Vector2* vec)
 {
 	Vector2 result = { -vec->y, vec->x };

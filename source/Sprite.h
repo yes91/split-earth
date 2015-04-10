@@ -37,12 +37,11 @@ typedef struct Sprite
 } Sprite;
 
 void Sprite_construct(
-	Sprite* self, 
-	FIXED x, 
-	FIXED y, 
-	u16 shape, 
-	u16 size, 
-	int pal, 
+	Sprite* self,
+	Vector2 pos,
+	u16 shape,
+	u16 size,
+	int pal,
 	int tile );
 
 void Sprite_decode(Sprite* self, int tile, const u8* src);

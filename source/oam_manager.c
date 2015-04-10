@@ -95,7 +95,7 @@ void init_oam(void)
 
 int get_key(SPR_BASE sprite)
 {
-	return sprite.pos.y;
+	return sprite.pos.y+sprite.mid.y+sprite.half.y;
 }
 
 IWRAM_CODE void id_sort_shell(SPR_BASE sprites[], u8 ids[], int count)
@@ -114,7 +114,7 @@ IWRAM_CODE void id_sort_shell(SPR_BASE sprites[], u8 ids[], int count)
         {
             u32 jj, id0= ids[ii]; 
             int key0= get_key(sprites[id0]);
-            for(jj=ii; jj>=inc && get_key(sprites[ids[jj-inc]]) > key0; jj -= inc)
+            for(jj=ii; jj>=inc && get_key(sprites[ids[jj-inc]]) < key0; jj -= inc)
                 ids[jj]= ids[jj-inc];
             ids[jj]= id0;
         }
