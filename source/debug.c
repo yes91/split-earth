@@ -17,7 +17,7 @@ char* gba_printf(const char* fmt, ...)
     va_end(arglist);                 // variable number of arguments reset
 
     // Display 
-    asm volatile("mov r0, %0;"       // Visual Boy Advance (Mappy) Debug Output
+    __asm__ volatile("mov r0, %0;"       // Visual Boy Advance (Mappy) Debug Output
                  "swi 0xff;"
                 : // no ouput
                 : "r" (str)

@@ -251,6 +251,8 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 		Player_draw(&player, cam.pos.x, cam.pos.y);
 
+		update_oam();
+
 		VBlankIntrWait();
 
 		Camera_translate(&cam);
@@ -292,7 +294,6 @@ void VblankInterrupt()
 
 {
 	key_poll();
-	update_oam();
 }
 
 //---------------------------------------------------------------------------------
