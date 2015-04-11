@@ -4,7 +4,7 @@
 #include <gba_types.h>
 
 #define FNV32_PRIME 16777619
-#define FNV32_OFFSET_BASIS 2166136261
+#define FNV32_OFFSET_BASIS 2166136261U
 
 u32 fnv1a_string_hash(const char* string);
 

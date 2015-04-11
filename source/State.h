@@ -6,7 +6,7 @@
 struct GBFS_FILE;
 
 typedef struct STATE {
-	void (*construct)(const GBFS_FILE*);
+	void (*construct)(const struct GBFS_FILE*);
 	void (*update)(FIXED);
 	void (*render)(void);
 	void (*destroy)(void);
