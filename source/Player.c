@@ -38,8 +38,10 @@ void Player_construct(
 
 	const u8* player_sprite = gbfs_get_obj(dat, sprite, NULL);
 
-	self->sprite_graphics = spr_vram_alloc(image, sizeof(TILE) * player_size);
-	tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
+	bool chached = false;
+	self->sprite_graphics = spr_vram_alloc(image, &chached, sizeof(TILE) * player_size);
+	if(!chached)
+		tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
 	memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
 
 	Sprite_decode(&self->sprite, self->sprite_graphics, player_sprite);
@@ -73,8 +75,10 @@ void Player_load(Player* self, Vector2 pos, const struct GBFS_FILE* dat, const c
 	u32 player_pal_len = 0;
 	const u16* player_pal = gbfs_get_obj(dat, pal, &player_pal_len);
 
-	self->sprite_graphics = spr_vram_alloc(image, player_size);
-	CpuFastSet(player_tiles, spr_mem(self->sprite_graphics), player_size >> 2);
+	bool chached = false;
+	self->sprite_graphics = spr_vram_alloc(image, &chached, player_size);
+	if(!chached)
+		CpuFastSet(player_tiles, spr_mem(self->sprite_graphics), player_size >> 2);
 
 	Sprite_decode(&self->sprite, self->sprite_graphics, src);
 	self->sprite.base->pos = pos;

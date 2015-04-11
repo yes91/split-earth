@@ -7,7 +7,7 @@ void spr_vram_init(void);
 
 void* spr_mem(u16 ptr);
 
-u16 spr_vram_alloc(const char* ident, u32 size);
+u16 spr_vram_alloc(const char* ident, bool* status, u32 size);
 
 void spr_vram_free(u16 ptr);
 

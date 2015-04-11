@@ -95,7 +95,7 @@ static u16 find_fit(u16 blocks)
 	return 0xFFFF;
 }
 
-u16 spr_vram_alloc(const char* ident, u32 size)
+u16 spr_vram_alloc(const char* ident, bool* status, u32 size)
 {
 	u32 blocks = PTR_ALIGN(size);
 	u32 hash = fnv1a_string_hash(ident);
@@ -120,6 +120,7 @@ u16 spr_vram_alloc(const char* ident, u32 size)
 	else
 	{
 		alloc_map[result].ref_count++;
+		*status = true;
 	}
 
 	debug_print("Allocated pointer: %p\n", base + result);
