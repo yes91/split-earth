@@ -189,7 +189,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 	u32 metr_pal_len = 0;
 	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
 
-	u16 metroid_sprite = spr_vram_alloc(sizeof(TILE) * metr_size);
+	u16 metroid_sprite = spr_vram_alloc("metr.tiles", sizeof(TILE) * metr_size);
 	tile_copy(spr_mem(metroid_sprite), metr_tiles, metr_size);
     memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
 

@@ -2,6 +2,7 @@
 #include <gba_sprites.h>
 #include "tile.h"
 #include "debug.h"
+#include "hash.h"
 
 #define PTR_ALIGN(size) ((((size) + (sizeof(TILE)-1)) & ~(sizeof(TILE)-1)) / sizeof(TILE))
 #define BLOCKS 1024
@@ -9,19 +10,26 @@
 static TILE* base = &tile_mem[4][0];
 
 typedef enum ALLOC_STATUS
-{
+{	
 	FREE,
 	USED,
 	CONTINUE
 } ALLOC_STATUS;
 
-static ALLOC_STATUS alloc_map[BLOCKS];
+typedef struct ALLOC_ENTRY 
+{
+	ALLOC_STATUS status;
+	u32 hash;
+	u32 ref_count;
+} ALLOC_ENTRY;
+
+static ALLOC_ENTRY alloc_map[BLOCKS];
 
 void spr_vram_init(void)
 {
 	u32 i;
 	for(i = 0; i < BLOCKS; i++)
-		alloc_map[i] = FREE;
+		alloc_map[i].status = FREE;
 }
 
 void* spr_mem(u16 ptr)
@@ -29,10 +37,34 @@ void* spr_mem(u16 ptr)
 	return base + ptr;
 }
 
+static u16 next_used(u16 start)
+{
+	u32 i;
+	for(i = start; i < BLOCKS && alloc_map[i].status != USED; i++);
+	return i;
+}
+
+static u16 find_match(u32 hash)
+{
+	u16 used_index = next_used(0);
+
+	while(used_index < BLOCKS)
+	{
+		if(alloc_map[used_index].hash == hash)
+		{
+			return used_index;
+		}
+
+		used_index = next_used(used_index + 1);
+	}
+
+	return 0xFFFF;
+}
+
 static u16 next_free(u16 start)
 {
 	u32 i;
-	for(i = start; i < BLOCKS && alloc_map[i] != FREE; i++);
+	for(i = start; i < BLOCKS && alloc_map[i].status != FREE; i++);
 	return i;
 }
 
@@ -48,7 +80,7 @@ static u16 find_fit(u16 blocks)
 			return free_index - blocks;
 		}
 
-		if(alloc_map[free_index] == FREE)
+		if(alloc_map[free_index].status == FREE)
 		{
 			free_index++;
 			count++;
@@ -60,39 +92,57 @@ static u16 find_fit(u16 blocks)
 		}
 	}
 
-	return -1;
+	return 0xFFFF;
 }
 
-u16 spr_vram_alloc(u32 size)
+u16 spr_vram_alloc(const char* ident, u32 size)
 {
 	u32 blocks = PTR_ALIGN(size);
-	debug_print("Size: %d, Blocks: %d\n", size, blocks);
-	u16 result = find_fit(blocks);
-	if(result < BLOCKS)
+	u32 hash = fnv1a_string_hash(ident);
+
+	debug_print("Ident: %s, Hash: 0x%.6X\n", ident, hash);
+	u16 result = find_match(hash);
+	
+	if(result > BLOCKS)
 	{
-		alloc_map[result] = USED;
-		u32 i;
-		for(i = result + 1; i < BLOCKS && i < result + blocks; i++)
+		debug_print("Miss! Size: %d, Blocks: %d\n", size, blocks);
+		result = find_fit(blocks);
+		if(result < BLOCKS)
 		{
-			alloc_map[i] = CONTINUE;
+			alloc_map[result].status = USED;
+			u32 i;
+			for(i = result + 1; i < BLOCKS && i < result + blocks; i++)
+			{
+				alloc_map[i].status = CONTINUE;
+			}
 		}
 	}
+	else
+	{
+		alloc_map[result].ref_count++;
+	}
+
 	debug_print("Allocated pointer: %p\n", base + result);
 	return result;
 }
 
 void spr_vram_free(u16 ptr)
 {
-	if(ptr < 0 || ptr > BLOCKS || alloc_map[ptr] != USED)
+	if(ptr < 0 || ptr > BLOCKS || alloc_map[ptr].status != USED)
 	{
 		return;
 	}
 
-	alloc_map[ptr] = FREE;
-	u32 i;
-	for(i = ptr + 1; i < BLOCKS && alloc_map[i] == CONTINUE; i++)
+	alloc_map[ptr].ref_count--;
+
+	if(alloc_map[ptr].ref_count == 0)
 	{
-		alloc_map[i] = FREE;
+		alloc_map[ptr].status = FREE;
+		u32 i;
+		for(i = ptr + 1; i < BLOCKS && alloc_map[i].status == CONTINUE; i++)
+		{
+			alloc_map[i].status = FREE;
+		}
 	}
 }
 
