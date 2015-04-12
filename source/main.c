@@ -189,13 +189,13 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 	u32 metr_pal_len = 0;
 	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
 
-	bool chached = false;
-	u16 metroid_sprite = spr_vram_alloc("metr.tiles", &chached, sizeof(TILE) * metr_size);
-	if(!chached)
+	bool cached = false;
+	u16 metroid_sprite = spr_vram_alloc("metr.tiles", &cached, sizeof(TILE) * metr_size);
+	if(!cached)
 		tile_copy(spr_mem(metroid_sprite), metr_tiles, metr_size);
-    memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
+    	memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
 
-    Sprite sprite1;
+    	Sprite sprite1;
 
 	Sprite_construct(
 		&sprite1, 
@@ -204,6 +204,25 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 		ATTR1_SIZE_64,
 		0,
 		metroid_sprite );
+
+
+
+	u32 guy_size = 0;
+	const TILE* guy_tiles = gbfs_get_obj(dat, "guy.tiles", &guy_size);
+	guy_size /= sizeof(TILE);
+	cached = false;
+	u16 guy_sprite = spr_vram_alloc("guy.tiles", &cached, sizeof(TILE) * guy_size);
+	if (!cached)
+		tile_copy(spr_mem(guy_sprite), guy_tiles, guy_size);
+
+	Sprite guys[32];
+	int i;
+	for (i = 0; i < 32; i++)
+	{
+		Sprite_construct(&guys[i], Vector2_float(0.f, 0.f), ATTR0_SQUARE, ATTR1_SIZE_32, 4, guy_sprite);
+	}
+	
+
 
 	Player player;
 
@@ -237,6 +256,15 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 		sprite1.base->pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
 		sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));				
+		
+		int grouping;
+		for (i = 0; i < 32; i++)
+		{
+			grouping = i/8;
+			guys[i].base->pos.x = int_to_fx(20+50*(grouping) + (-10 * (i%8) * fx_cos(t) >> 14));
+			guys[i].base->pos.y = int_to_fx(20+50*(grouping) + (-10 * (i%8) * fx_sin(t) >> 14));
+			Sprite_draw(&guys[i], cam.pos.x, cam.pos.y);
+		}
 
 		Camera_update(&cam);
 
