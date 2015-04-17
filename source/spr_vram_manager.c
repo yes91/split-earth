@@ -1,5 +1,6 @@
 #include "spr_vram_manager.h"
 #include <gba_sprites.h>
+#include <gba_systemcalls.h>
 #include "tile.h"
 #include "debug.h"
 #include "hash.h"
@@ -110,11 +111,16 @@ u16 spr_vram_alloc(const char* ident, bool* status, u32 size)
 		if(result < BLOCKS)
 		{
 			alloc_map[result].status = USED;
+			alloc_map[result].hash = hash;
 			u32 i;
 			for(i = result + 1; i < BLOCKS && i < result + blocks; i++)
 			{
 				alloc_map[i].status = CONTINUE;
 			}
+		}
+		else
+		{
+			debug_print("OUT OF SPRITE VRAM!%s\n", "");
 		}
 	}
 	else
@@ -145,6 +151,15 @@ void spr_vram_free(u16 ptr)
 			alloc_map[i].status = FREE;
 		}
 	}
+}
+
+u16 spr_vram_load(const char* ident, const void* src, u32 size)
+{
+	bool cached;
+	u16 sprite = spr_vram_alloc(ident, &cached, size);
+	if (!cached)
+		CpuFastSet(src, spr_mem(sprite), size >> 2);
+	return sprite;
 }
 
 /*typedef union Block

@@ -26,8 +26,7 @@ typedef struct Camera
 void Camera_construct(
 	Camera* self, 
 	u32 bgs, 
-	int x, 
-	int y, 
+	Vector2 pos, 
 	Vector2 bounds, 
 	struct Sprite* target
 	);

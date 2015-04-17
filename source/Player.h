@@ -1,32 +1,18 @@
 #ifndef _Player_h_
 #define _Player_h_
 
-#include "Sprite.h"
-#include "Vector2.h"
-
-#include <gba_types.h>
+#include "Character.h"
 
 struct GBFS_FILE;
 
-typedef enum Direction
-{
-	WEST = 4, SOUTH = 5, EAST = 6, NORTH = 7
-} Direction;
-
 typedef struct Player 
 {
-	Sprite sprite;
-	int z;
-	Vector2 velocity;
-	Vector2 forward;
-	Direction heading;
-	u16 sprite_graphics;
+	Character base;
 } Player;
 
 void Player_construct(
 	Player* self,
-	int x,
-	int y,
+	Vector2 pos,
 	const struct GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 

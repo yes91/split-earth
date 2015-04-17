@@ -1,22 +1,18 @@
 #include "Player.h"
-#include "tile.h"
 #include "Input.h"
-#include "filesys.h"
 
+#include <stddef.h>
 #include <gbfs.h>
 #include <gba_video.h>
-#include <gba_systemcalls.h>
 
+#include "oam_manager.h"
 #include "fastmath.h"
 #include "util.h"
 #include "debug.h"
-#include "oam_manager.h"
-#include "spr_vram_manager.h"
 
 void Player_construct(
 	Player* self,
-	FIXED x,
-	FIXED y,
+	Vector2 pos,
 	const GBFS_FILE* dat,
 	const char* image, 
 	const char* pal, 
@@ -24,66 +20,13 @@ void Player_construct(
 	int palette
 	)
 {
-	self->velocity = Vector2_create(0, 0);
-	self->forward = Vector2_create(0, int_to_fx(-1));
-	self->heading = NORTH;
-	self->z = 0;
-
-	u32 player_size = 0;
-	const TILE* player_tiles = gbfs_get_obj(dat, image, &player_size);
-	player_size /= sizeof(TILE);
-
-	u32 player_pal_len = 0;
-	const u16* player_pal = gbfs_get_obj(dat, pal, &player_pal_len);
-
-	const u8* player_sprite = gbfs_get_obj(dat, sprite, NULL);
-
-	bool chached = false;
-	self->sprite_graphics = spr_vram_alloc(image, &chached, sizeof(TILE) * player_size);
-	if(!chached)
-		tile_copy(spr_mem(self->sprite_graphics), player_tiles, player_size);
-	memcpy(&SPRITE_PALETTE[16 * palette], player_pal, player_pal_len);
-
-	Sprite_decode(&self->sprite, self->sprite_graphics, player_sprite);
-	self->sprite.base->pos.x = x;
-	self->sprite.base->pos.y = y;
+	Character_construct((Character*)self, pos, dat, image, pal, sprite, palette);
 }
 
 void Player_load(Player* self, Vector2 pos, const struct GBFS_FILE* dat, const char* player)
 {
-	self->velocity = Vector2_create(0, 0);
-	self->forward = Vector2_create(0, int_to_fx(-1));
-	self->heading = NORTH;
-	self->z = 0;
-	
 	const u8* src = gbfs_get_obj(dat, player, NULL);
-	
-	u32 length;
-	src += read_data(&length, src, sizeof length);
-
-	char image[length + 1];
-	src += read_string(image, src, length);
-
-	src += read_data(&length, src, sizeof length);
-
-	char pal[length + 1];
-	src += read_string(pal, src, length);
-
-	u32 player_size = 0;
-	const TILE* player_tiles = gbfs_get_obj(dat, image, &player_size);
-
-	u32 player_pal_len = 0;
-	const u16* player_pal = gbfs_get_obj(dat, pal, &player_pal_len);
-
-	bool chached = false;
-	self->sprite_graphics = spr_vram_alloc(image, &chached, player_size);
-	if(!chached)
-		CpuFastSet(player_tiles, spr_mem(self->sprite_graphics), player_size >> 2);
-
-	Sprite_decode(&self->sprite, self->sprite_graphics, src);
-	self->sprite.base->pos = pos;
-
-	CpuFastSet(player_pal, &SPRITE_PALETTE[16 * self->sprite.pal], player_pal_len >> 2);
+	Character_decode((Character*)self, pos, dat, src);
 }
 
 static FIXED quad_interp(FIXED t, FIXED max)
@@ -93,7 +36,7 @@ static FIXED quad_interp(FIXED t, FIXED max)
 	return ((4 << 16) / (max * max) * (tmax - tsq)) >> FIX_SHIFT;
 }
 
-static void walk(Player* self, Vector2 delta, FIXED speed)
+static void walk(Character* self, Vector2 delta, FIXED speed)
 {
 	//2 px/f * 60 f/s = 120 px/s
 	self->velocity = Vector2_scalar_mult(delta, speed); 
@@ -121,7 +64,7 @@ static void walk(Player* self, Vector2 delta, FIXED speed)
 	}
 }
 
-static void jump(Player* self, u32 key, FIXED max, FIXED dt)
+static void jump(Character* self, u32 key, FIXED max, FIXED dt)
 {
 	static FIXED timer = 0;
 
@@ -147,9 +90,11 @@ static void jump(Player* self, u32 key, FIXED max, FIXED dt)
 
 void Player_update(Player* self, FIXED dt)
 {
-	walk(self, key_dir(), int_to_fx(120));
+	Character* base = (Character*)self;
 
-	jump(self, key_held(KEY_R), float_to_fx(0.25f), dt);
+	walk(base, key_dir(), int_to_fx(120));
+
+	jump(base, key_held(KEY_R), float_to_fx(0.25f), dt);
 
 	/*Vector2 target = Vector2_sub(self->sprite.pos, 
 		Vector2_create(int_to_fx(100), int_to_fx(50)));
@@ -159,19 +104,18 @@ void Player_update(Player* self, FIXED dt)
 	debug_print("target / || target || = (%f, %f)\n", 
 		fx_to_float(target.x), fx_to_float(target.y));*/
 
-	Vector2_plus_equal(&self->sprite.base->pos, Vector2_scalar_mult(self->velocity, dt));
+	Vector2_plus_equal(&base->sprite.base->pos, Vector2_scalar_mult(base->velocity, dt));
 
-	if(key_hit(KEY_SELECT))
-		self->sprite.pal -= 1;
+	if(key_hit(KEY_B))
+		base->sprite.pal -= 1;
 }
 
 void Player_draw(Player* self, FIXED offset_x, FIXED offset_y)
 {
-	Sprite_draw(&self->sprite, offset_x, offset_y + self->z);
+	Character_draw((Character*)self, offset_x, offset_y);
 }
 
 void Player_destroy(Player* self)
 {
-	spr_vram_free(self->sprite_graphics);
-	Sprite_destroy(&self->sprite);
+	Character_destroy((Character*)self);
 }

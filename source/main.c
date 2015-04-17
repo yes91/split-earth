@@ -19,113 +19,15 @@
 #include "Player.h"
 #include "Camera.h"
 
+#include "StateMachine.h"
+#include "TitleState.h"
+#include "PlayState.h"
+
 #include <gbfs.h>
 
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
-typedef struct
-{
-
-	int x, y;
-
-}sPoint2D;
-
-typedef struct
-{
-
-	int x, y;
-
-	sPoint2D p[4];
-
-	u8 color;
-
-	int angle;
-}sBox;
-
-void rotate(sBox* box, int amount)
-{
-	box->angle += amount;	
-
-	if(box->angle < 0) box->angle += 360;
-
-	box->angle %= 360;
-}
-
-void drawBox(Graphics* g, sBox* box)
-{
-
-	int angle = box->angle;
-
-	sPoint2D p[4];
-	
-	int i;
-	for(i = 0; i < 4; i++) {
-		p[i].x = ( ( fx_cos(angle) * (box->p[i].x >> 14) - fx_sin(angle) * (box->p[i].y >> 14) ) ) + box->x;
-		p[i].y = ( ( fx_sin(angle) * (box->p[i].x >> 14) + fx_cos(angle) * (box->p[i].y >> 14) ) ) + box->y;
-	}
-
- 
-	slow_line(p[0].x >> 14, p[0].y >> 14, p[1].x >> 14, p[1].y >> 14, box->color, g);
-
-	slow_line(p[1].x >> 14, p[1].y >> 14, p[2].x >> 14, p[2].y >> 14, box->color, g);
-
-	slow_line(p[2].x >> 14, p[2].y >> 14, p[3].x >> 14, p[3].y >> 14, box->color, g);
-
-	slow_line(p[3].x >> 14, p[3].y >> 14, p[0].x >> 14, p[0].y >> 14, box->color, g);
-}
-
-//WaitForVblank and Draw line not shown...code is same as before
-
-void boxTest(Graphics* context)
-{
-	Graphics_setMode(context, MODE_4 | BG2_ENABLE);
-
-	sBox box = {
-
-		50 << 14, 40 << 14, //x,y
-
-		{
-
-			{ -20 << 14, 10 << 14 }, //points
-
-			{ 20 << 14, 10 << 14 },
-
-			{ 20 << 14, -10  << 14},
-
-			{ -20 << 14, -10 << 14 }
-
-		},
-
-	        2, //color
-
-		90 //angle
-
-	};
-
-	context->paletteBuffer[1] = RGB16(20, 5, 20);
-	context->paletteBuffer[2] = RGB16(0, 31, 31);
-
-	while (1)
-	{
-		clearScreen(context, 1);
-
-		drawBox(context, &box);
-		
-		rotate(&box, 2 * key_tri_horz());
-
-		int forward = key_tri_vert();
-
-		if(key_held(KEY_A)) forward *= 3;
-
-		box.x += forward * fx_cos(box.angle);
-		box.y += forward * fx_sin(box.angle);
-
-		VBlankIntrWait();
-
-		flip(context);
-	}
-}
-
+// DEPRECATED
 void consoleTest(const GBFS_FILE* dat, Graphics* context)
 {
 	Graphics_setMode(context, 0);
@@ -135,7 +37,7 @@ void consoleTest(const GBFS_FILE* dat, Graphics* context)
 	// ansi escape sequence to set print co-ordinates
 	// /x1b[line;columnH
 
-	const char * text = NULL;
+	const char* text = NULL;
 	u32 text_len = 0;
 
 	text = gbfs_get_obj(dat, "test.txt", &text_len);
@@ -145,24 +47,23 @@ void consoleTest(const GBFS_FILE* dat, Graphics* context)
 	while(1) { VBlankIntrWait(); }
 }
 
-void imageTest(const GBFS_FILE* dat, Graphics* context)
+// DEPRECATED
+void imageTest(const GBFS_FILE* dat)
 {
-	Graphics_setMode(context, MODE_4 | BG2_ENABLE);
+	SetMode( MODE_4 | BG2_ENABLE );
 
 	const u8* image = gbfs_get_obj(dat, "splash.pcx", NULL);
 	
-	DecodePCX(image, (u16*)context->currentBuffer, (u16*)context->paletteBuffer);
-
-	flip(context);
+	DecodePCX(image, (u16*)VRAM, BG_PALETTE);
 	
-	while(1) { VBlankIntrWait(); }
+	while(true) { VBlankIntrWait(); }
 }
 
 
-
-void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
+// DEPRECATED
+void spriteTest(const GBFS_FILE* dat, FIXED dt)
 {
-	Graphics_setMode(context, MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
+	SetMode( MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
 
 	REG_BG0CNT = SCREEN_BASE(31);
 
@@ -184,18 +85,14 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 	u32 metr_size = 0;
 	const TILE* metr_tiles = gbfs_get_obj(dat, "metr.tiles", &metr_size);
-	metr_size /= sizeof(TILE);
 
 	u32 metr_pal_len = 0;
 	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
 
-	bool cached = false;
-	u16 metroid_sprite = spr_vram_alloc("metr.tiles", &cached, sizeof(TILE) * metr_size);
-	if(!cached)
-		tile_copy(spr_mem(metroid_sprite), metr_tiles, metr_size);
-    	memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
+	u16 metroid_sprite = spr_vram_load("metr.tiles", metr_tiles, metr_size);
+	memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
 
-    	Sprite sprite1;
+	Sprite sprite1;
 
 	Sprite_construct(
 		&sprite1, 
@@ -205,15 +102,9 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 		0,
 		metroid_sprite );
 
-
-
 	u32 guy_size = 0;
 	const TILE* guy_tiles = gbfs_get_obj(dat, "guy.tiles", &guy_size);
-	guy_size /= sizeof(TILE);
-	cached = false;
-	u16 guy_sprite = spr_vram_alloc("guy.tiles", &cached, sizeof(TILE) * guy_size);
-	if (!cached)
-		tile_copy(spr_mem(guy_sprite), guy_tiles, guy_size);
+	u16 guy_sprite = spr_vram_load("guy.tiles", guy_tiles, guy_size);
 
 	Sprite guys[32];
 	int i;
@@ -221,7 +112,6 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 	{
 		Sprite_construct(&guys[i], Vector2_float(0.f, 0.f), ATTR0_SQUARE, ATTR1_SIZE_32, 4, guy_sprite);
 	}
-	
 
 
 	Player player;
@@ -241,14 +131,14 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 		CAM_BG0, 
 		{ 0, 0 }, 
 		{ int_to_fx(256), int_to_fx(256) }, 
-		&player.sprite 
+		&player.base.sprite 
 	};
 
 	while (1)
 	{
 		if(frame == 60)
 		{
-			//debug_print("x: %d y: %d\n", fx_to_int(cam.pos.x), fx_to_int(cam.pos.y));
+			debug_print("x: %d y: %d\n", fx_to_int(guys[1].base->pos.x), fx_to_int(guys[1].base->pos.y));
 			frame = 0;
 		}
 
@@ -272,11 +162,6 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 
 		frame++;
 
-		if(key_hit(KEY_B))
-		{
-			player.sprite.pal -= 1;
-		}
-
 		Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
 
 		Player_draw(&player, cam.pos.x, cam.pos.y);
@@ -292,6 +177,7 @@ void spriteTest(const GBFS_FILE* dat, Graphics* context, FIXED dt)
 	Sprite_destroy(&sprite1);
 }
 
+// DEPRECATED
 void bgTest(const GBFS_FILE* dat, Graphics* context){
 	
 	//Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)	
@@ -342,18 +228,37 @@ int main(void) {
 
 	const GBFS_FILE* dat = find_first_gbfs_file(find_first_gbfs_file);
 
-	Graphics context = Graphics_new(0);
+	//Graphics context = Graphics_new(0);
+
+	const FIXED dt = float_to_fx(1.f/60.f);
 
 	init_oam();
 	spr_vram_init();
 
-	const FIXED dt = float_to_fx(1.f/60.f);
+	StateMachine sm;
+
+	STATE state_table[] = {
+		[TITLE] = title_state,
+		[OPTION] = play_state,
+		[PLAY] = play_state,
+		[GAMEOVER] = play_state
+	};
+
+	StateMachine_construct(&sm, dat, state_table, TITLE);
+
+	while(true)
+	{
+		StateMachine_update(&sm, dt);
+		StateMachine_draw(&sm);
+		VBlankIntrWait();
+	}
 
 	//boxTest(&context);
-    //imageTest(dat, &context);
+    //imageTest(dat);
 	//consoleTest(dat, &context);
 	//bgTest(dat, &context);
-	spriteTest(dat, &context, dt);
+	
+	//spriteTest(dat, dt);
 
 	return 0;
 }

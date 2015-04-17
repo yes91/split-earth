@@ -11,4 +11,6 @@ u16 spr_vram_alloc(const char* ident, bool* status, u32 size);
 
 void spr_vram_free(u16 ptr);
 
+u16 spr_vram_load(const char* ident, const void* src, u32 size);
+
 #endif

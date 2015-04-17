@@ -32,7 +32,7 @@ ARCH	:=	-mthumb -mthumb-interwork
 
 CFLAGS	:=	-Werror -Wall -O3\
 		-mcpu=arm7tdmi -mtune=arm7tdmi\
- 		-fomit-frame-pointer\
+		-fomit-frame-pointer\
 		-ffast-math \
 		$(ARCH)
 
@@ -128,6 +128,10 @@ clean:
 run:
 	@echo running ...
 	@vba -s 0 $(TARGET).gba
+#---------------------------------------------------------------------------------
+profile:
+	@echo profiling ...
+	@vba -s 0 -profile=15 $(TARGET).gba
 #---------------------------------------------------------------------------------
 tests:
 	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
