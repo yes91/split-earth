@@ -15,6 +15,7 @@
 #include "spr_vram_manager.h"
 #include <string.h>
 #include "Input.h"
+#include "fade.h"
 
 #include "StateMachine.h"
 
@@ -27,8 +28,14 @@ static Camera cam;
 static u32 t = 0;
 static u32 frame = 0;
 
+static void PlayState_draw(void);
+static void PlayState_update(StateMachine*, FIXED);
+
 static void PlayState_construct(const GBFS_FILE* dat)
 {
+	REG_BLDCNT = 3 << 6 | BIT(5) | BIT(4) | BIT(0);
+	REG_BLDY = 0x16;
+
     SetMode( MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
 
 	REG_BG0CNT = SCREEN_BASE(31);
@@ -100,6 +107,12 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		Vector2_float(256.f, 256.f), 
 		&player.base.sprite 
 		);
+
+	PlayState_draw();
+
+	PlayState_update(NULL, 0);
+
+	fade_in(float_to_fx(1.0f), 3, BIT(5) | BIT(4) | BIT(0));
 }
 
 static void PlayState_update(StateMachine* sm, FIXED dt)

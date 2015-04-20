@@ -10,7 +10,6 @@
 #include "util.h"
 #include "debug.h"
 
-
 void Enemy_construct(
 	Enemy* self,
 	Vector2 pos,
@@ -24,21 +23,18 @@ void Enemy_construct(
 	Character_construct((Character*)self, pos, dat, image, pal, sprite, palette);
 }
 
-void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* player)
+void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy)
 {
-	const u8* src = gbfs_get_obj(dat, player, NULL);
+	const u8* src = gbfs_get_obj(dat, enemy, NULL);
 	Character_decode((Character*)self, pos, dat, src);
 }
 
-static FIXED quad_interp(FIXED t, FIXED max)
+/*static FIXED quad_interp(FIXED t, FIXED max)
 {
 	FIXED tmax = t * max;
 	FIXED tsq = t * t;
 	return ((4 << 16) / (max * max) * (tmax - tsq)) >> FIX_SHIFT;
-}
-
-
-
+}*/
 
 static void walk(Character* self, Vector2 delta, FIXED speed)
 {
@@ -71,12 +67,7 @@ static void walk(Character* self, Vector2 delta, FIXED speed)
 void Enemy_update(Enemy* self, FIXED dt)
 {
 	Character* base = (Character*)self;
-	static FIXED timer = 0;
-	static
-	if(timer == float_to_fx(0.1f)){
-				
 	
-	}
 	walk(base, key_dir(), int_to_fx(120));
 
 	/*Vector2 target = Vector2_sub(self->sprite.pos, 
@@ -104,7 +95,7 @@ void Enemy_destroy(Enemy* self)
 	Character_destroy((Character*)self);
 }
 
-
+/*
 // from tonc_core.h/.c
 // A Quick (and dirty) random number generator and its seeder
 
@@ -116,14 +107,14 @@ int sqran(int seed)
     int old= __qran_seed;
     __qran_seed= seed; 
     return old;	
-}
+} */
 
 //! Quick (and very dirty) pseudo-random number generator 
 /*! \return random in range [0,8000h>
 */
-INLINE int qran()
+/*INLINE int qran()
 {	
     __qran_seed= 1664525*__qran_seed+1013904223;
     return (__qran_seed>>16) & 0x7FFF;
-}
+}*/
 
