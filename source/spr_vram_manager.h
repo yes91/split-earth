@@ -3,7 +3,7 @@
 
 #include <gba_types.h>
 
-void spr_vram_init(void);
+void spr_vram_init(bool bitmapMode);
 
 void* spr_mem(u16 ptr);
 

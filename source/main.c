@@ -6,9 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "fastmath.h"
-#include "Graphics.h"
 #include "Input.h"
-#include "plot.h"
 #include "Sprite.h"
 #include <gba_sprites.h>
 #include "oam_manager.h"
@@ -28,10 +26,8 @@
 #define RGB16(r,g,b)  ((r)+(g<<5)+(b<<10))
 
 // DEPRECATED
-void consoleTest(const GBFS_FILE* dat, Graphics* context)
+void consoleTest(const GBFS_FILE* dat)
 {
-	Graphics_setMode(context, 0);
-
 	consoleDemoInit();
 
 	// ansi escape sequence to set print co-ordinates
@@ -178,10 +174,10 @@ void spriteTest(const GBFS_FILE* dat, FIXED dt)
 }
 
 // DEPRECATED
-void bgTest(const GBFS_FILE* dat, Graphics* context){
+void bgTest(const GBFS_FILE* dat){
 	
 	//Enable BG mode 0 (no affine BGs), 1D sprite mapping, sprites, and BG0 as visible)	
-	Graphics_setMode(context, MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); 
+	SetMode( MODE_0 | OBJ_1D_MAP | OBJ_ON | BG0_ENABLE); 
 
 	REG_BG0CNT = SCREEN_BASE(31);
 
@@ -233,7 +229,6 @@ int main(void) {
 	const FIXED dt = float_to_fx(1.f/60.f);
 
 	init_oam();
-	spr_vram_init();
 
 	StateMachine sm;
 

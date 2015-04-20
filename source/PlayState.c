@@ -33,6 +33,8 @@ static void PlayState_construct(const GBFS_FILE* dat)
 
 	REG_BG0CNT = SCREEN_BASE(31);
 
+	spr_vram_init(false);
+
 	u32 tiles_size = 0;
 	const TILE* bg_tiles = gbfs_get_obj(dat, "test_tileset.tiles", &tiles_size);
 	tiles_size /= sizeof(TILE);

@@ -8,6 +8,7 @@
 #define PTR_ALIGN(size) ((((size) + (sizeof(TILE)-1)) & ~(sizeof(TILE)-1)) / sizeof(TILE))
 #define BLOCKS 1024
 
+static u16 offset = 0;
 static TILE* base = &tile_mem[4][0];
 
 typedef enum ALLOC_STATUS
@@ -26,10 +27,12 @@ typedef struct ALLOC_ENTRY
 
 static ALLOC_ENTRY alloc_map[BLOCKS];
 
-void spr_vram_init(void)
+void spr_vram_init(bool bitmapMode)
 {
+	offset = bitmapMode ? 512 : 0;
+
 	u32 i;
-	for(i = 0; i < BLOCKS; i++)
+	for(i = offset; i < BLOCKS; i++)
 		alloc_map[i].status = FREE;
 }
 
@@ -47,7 +50,7 @@ static u16 next_used(u16 start)
 
 static u16 find_match(u32 hash)
 {
-	u16 used_index = next_used(0);
+	u16 used_index = next_used(offset);
 
 	while(used_index < BLOCKS)
 	{
@@ -71,7 +74,7 @@ static u16 next_free(u16 start)
 
 static u16 find_fit(u16 blocks)
 {
-	u16 free_index = next_free(0);
+	u16 free_index = next_free(offset);
 	u32 count = 0;
 	while(free_index < BLOCKS)
 	{
@@ -110,8 +113,9 @@ u16 spr_vram_alloc(const char* ident, bool* status, u32 size)
 		result = find_fit(blocks);
 		if(result < BLOCKS)
 		{
-			alloc_map[result].status = USED;
-			alloc_map[result].hash = hash;
+			ALLOC_ENTRY entry = { USED, hash, 1 };
+			alloc_map[result] = entry;
+			
 			u32 i;
 			for(i = result + 1; i < BLOCKS && i < result + blocks; i++)
 			{
@@ -140,10 +144,16 @@ void spr_vram_free(u16 ptr)
 		return;
 	}
 
+	debug_print("Freed pointer: %p\n", base + ptr);
+
+	debug_print("ref_count == %d\n", alloc_map[ptr].ref_count);
+
 	alloc_map[ptr].ref_count--;
 
 	if(alloc_map[ptr].ref_count == 0)
 	{
+		debug_print("Released!%s", "\n");
+
 		alloc_map[ptr].status = FREE;
 		u32 i;
 		for(i = ptr + 1; i < BLOCKS && alloc_map[i].status == CONTINUE; i++)
