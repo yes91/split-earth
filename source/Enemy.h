@@ -4,6 +4,7 @@
 #include "Character.h"
 
 struct GBFS_FILE;
+struct Enemy;
 
 typedef enum ENEMY_STATES 
 { 
@@ -11,7 +12,7 @@ typedef enum ENEMY_STATES
     ATTACK 
 } ENEMY_STATES;
 
-typedef void*(*STATE_FN)(FIXED);
+typedef void*(*STATE_FN)(struct Enemy*, FIXED);
 
 typedef struct Enemy
 {

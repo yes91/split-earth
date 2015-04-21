@@ -12,6 +12,68 @@
 
 #include <stdlib.h>
 
+// from tonc_core.h/.c
+// A Quick (and dirty) random number generator and its seeder
+
+int __qran_seed= 42;     // Seed / rnd holder
+
+// Seed routine
+int sqran(int seed)
+{	
+	int old= __qran_seed;
+	__qran_seed= seed; 
+	return old;
+} 
+
+//! Quick (and very dirty) pseudo-random number generator 
+/*! \return random in range [0,8000h>
+*/
+static inline int qran(void)
+{	
+	__qran_seed= 1664525*__qran_seed+1013904223;
+	return (__qran_seed>>16) & 0x7FFF;
+}
+
+static void walk(Character* self, Vector2 delta, FIXED speed);
+static void* patrol_state(Enemy* self, FIXED dt);
+static void* pursue_state(Enemy* self, FIXED dt);
+
+static void* patrol_state(Enemy* self, FIXED dt)
+{
+	static FIXED move_time = 0;
+	
+	Character* base = (Character*)self;
+	
+	Vector2 delta = base->forward;
+
+	if(move_time <= 0)
+	{
+		delta.x = qran() - 0x4000;
+		delta.y = qran() - 0x4000;
+
+		move_time = float_to_fx(0.5f);
+	}
+
+	if(key_hit(KEY_L))
+	{
+		self->base.velocity = Vector2_create(0, 0);
+		return pursue_state;
+	}
+
+	Vector2_normalize(&delta);
+
+	walk(base, delta, int_to_fx(120));
+
+	move_time -= dt;
+
+	return patrol_state;
+}
+
+static void* pursue_state(Enemy* self, FIXED dt)
+{
+	return pursue_state;
+}
+
 void Enemy_construct(
 	Enemy* self,
 	Vector2 pos,
@@ -23,12 +85,14 @@ void Enemy_construct(
 	)
 {
 	Character_construct((Character*)self, pos, dat, image, pal, sprite, palette);
+	self->current = patrol_state;
 }
 
 void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy)
 {
 	const u8* src = gbfs_get_obj(dat, enemy, NULL);
 	Character_decode((Character*)self, pos, dat, src);
+	self->current = patrol_state;
 }
 
 /*static FIXED quad_interp(FIXED t, FIXED max)
@@ -66,50 +130,11 @@ static void walk(Character* self, Vector2 delta, FIXED speed)
 	}
 }
 
-
-// from tonc_core.h/.c
-// A Quick (and dirty) random number generator and its seeder
-
-int __qran_seed= 42;     // Seed / rnd holder
-
-// Seed routine
-int sqran(int seed)
-{	
-	int old= __qran_seed;
-	__qran_seed= seed; 
-	return old;
-} 
-
-//! Quick (and very dirty) pseudo-random number generator 
-/*! \return random in range [0,8000h>
-*/
-static inline int qran(void)
-{	
-	__qran_seed= 1664525*__qran_seed+1013904223;
-	return (__qran_seed>>16) & 0x7FFF;
-}
-
 void Enemy_update(Enemy* self, FIXED dt)
 {
-	static FIXED move_time = 0;
-	
+	self->current = self->current(self, dt);
+
 	Character* base = (Character*)self;
-	
-	Vector2 delta = base->forward;
-
-	if(move_time <= 0)
-	{
-		delta.x = qran() - 0x4000;
-		delta.y = qran() - 0x4000;
-
-		move_time = float_to_fx(0.5f);
-	}
-
-	Vector2_normalize(&delta);
-
-	walk(base, delta, int_to_fx(120));
-
-	move_time -= dt;
 
 	/*Vector2 target = Vector2_sub(self->sprite.pos, 
 		Vector2_create(int_to_fx(100), int_to_fx(50)));
