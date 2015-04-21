@@ -183,6 +183,7 @@ static void PlayState_destroy(void)
 	spr_vram_free(metroid_sprite);
 	spr_vram_free(guy_sprite);
 	Player_destroy(&player);
+	Enemy_destroy(&enemy);
 	Sprite_destroy(&sprite1);
 
 	u32 i;

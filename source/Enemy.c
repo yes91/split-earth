@@ -66,13 +66,50 @@ static void walk(Character* self, Vector2 delta, FIXED speed)
 	}
 }
 
+
+// from tonc_core.h/.c
+// A Quick (and dirty) random number generator and its seeder
+
+int __qran_seed= 42;     // Seed / rnd holder
+
+// Seed routine
+int sqran(int seed)
+{	
+	int old= __qran_seed;
+	__qran_seed= seed; 
+	return old;
+} 
+
+//! Quick (and very dirty) pseudo-random number generator 
+/*! \return random in range [0,8000h>
+*/
+static inline int qran(void)
+{	
+	__qran_seed= 1664525*__qran_seed+1013904223;
+	return (__qran_seed>>16) & 0x7FFF;
+}
+
 void Enemy_update(Enemy* self, FIXED dt)
 {
+	static FIXED move_time = 0;
+	
 	Character* base = (Character*)self;
 	
-	Vector2 delta = { rand(), rand() };
+	Vector2 delta = base->forward;
+
+	if(move_time <= 0)
+	{
+		delta.x = qran() - 0x4000;
+		delta.y = qran() - 0x4000;
+
+		move_time = float_to_fx(0.5f);
+	}
+
+	Vector2_normalize(&delta);
 
 	walk(base, delta, int_to_fx(120));
+
+	move_time -= dt;
 
 	/*Vector2 target = Vector2_sub(self->sprite.pos, 
 		Vector2_create(int_to_fx(100), int_to_fx(50)));
@@ -98,27 +135,4 @@ void Enemy_destroy(Enemy* self)
 {
 	Character_destroy((Character*)self);
 }
-
-/*
-// from tonc_core.h/.c
-// A Quick (and dirty) random number generator and its seeder
-
-int __qran_seed= 42;     // Seed / rnd holder
-
-// Seed routine
-int sqran(int seed)
-{	
-	int old= __qran_seed;
-	__qran_seed= seed; 
-	return old;	
-} */
-
-//! Quick (and very dirty) pseudo-random number generator 
-/*! \return random in range [0,8000h>
-*/
-/*INLINE int qran()
-{	
-	__qran_seed= 1664525*__qran_seed+1013904223;
-	return (__qran_seed>>16) & 0x7FFF;
-}*/
 
