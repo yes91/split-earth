@@ -16,6 +16,7 @@
 #include <string.h>
 #include "Input.h"
 #include "fade.h"
+#include "Enemy.h"
 
 #include "StateMachine.h"
 
@@ -24,6 +25,7 @@ static u16 metroid_sprite;
 static Sprite sprite1;
 static u16 guy_sprite;
 static Sprite guys[32];
+static Enemy enemy;
 static Camera cam;
 static u32 t = 1;
 static u32 frame = 0;
@@ -100,6 +102,13 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		"test_player.player"
 		);
 
+	Enemy_load(
+		&enemy,
+		Vector2_float(150.f, 50.f),
+		dat,
+		"test_player.player"
+		);
+
 	Camera_construct(
 		&cam, 
 		CAM_BG0, 
@@ -126,6 +135,7 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 	}
 
 	Player_update(&player, dt);
+	Enemy_update(&enemy, dt);
 
 	sprite1.base->pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
 	sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));				
@@ -162,6 +172,8 @@ static void PlayState_draw(void)
 	Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
 
 	Player_draw(&player, cam.pos.x, cam.pos.y);
+
+	Enemy_draw(&enemy, cam.pos.x, cam.pos.y);
 
 	update_oam();
 }

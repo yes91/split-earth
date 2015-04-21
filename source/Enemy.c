@@ -10,6 +10,8 @@
 #include "util.h"
 #include "debug.h"
 
+#include <stdlib.h>
+
 void Enemy_construct(
 	Enemy* self,
 	Vector2 pos,
@@ -68,7 +70,9 @@ void Enemy_update(Enemy* self, FIXED dt)
 {
 	Character* base = (Character*)self;
 	
-	walk(base, key_dir(), int_to_fx(120));
+	Vector2 delta = { rand(), rand() };
+
+	walk(base, delta, int_to_fx(120));
 
 	/*Vector2 target = Vector2_sub(self->sprite.pos, 
 		Vector2_create(int_to_fx(100), int_to_fx(50)));
