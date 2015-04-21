@@ -24,8 +24,8 @@ extern u16 key_curr_, key_prev_;
 // Polling function
 static inline void key_poll()
 {
-    key_prev_= key_curr_;
-    key_curr_= ~REG_KEYINPUT & KEY_MASK;
+	key_prev_= key_curr_;
+	key_curr_= ~REG_KEYINPUT & KEY_MASK;
 }
 
 // Basic state checks
@@ -60,9 +60,9 @@ static inline int bit_tribool(u32 x, int plus, int minus)
 
 enum eKeyIndex
 {
-    KI_A=0, KI_B, KI_SELECT, KI_START, 
-    KI_RIGHT, KI_LEFT, KI_UP, KI_DOWN,
-    KI_R, KI_L, KI_MAX
+	KI_A=0, KI_B, KI_SELECT, KI_START, 
+	KI_RIGHT, KI_LEFT, KI_UP, KI_DOWN,
+	KI_R, KI_L, KI_MAX
 };
 
 // --- TRISTATES ---

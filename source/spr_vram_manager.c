@@ -190,8 +190,8 @@ u32 tile_index(void* ptr)
 {
 	void* start = base;
 	u32 index = (u32)(ptr - start);
-    index /= sizeof(TILE); 
-    return index;
+	index /= sizeof(TILE); 
+	return index;
 }
 
 void* spr_vram_alloc(u32 size)

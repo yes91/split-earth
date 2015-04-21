@@ -8,7 +8,7 @@ struct GBFS_FILE;
 
 typedef enum STATE_TYPE
 {
-    TITLE, OPTION, PLAY, GAMEOVER, NUM_STATES
+	TITLE, OPTION, PLAY, GAMEOVER, NUM_STATES
 } STATE_TYPE;
 
 typedef struct StateMachine

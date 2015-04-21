@@ -104,9 +104,9 @@ int __qran_seed= 42;     // Seed / rnd holder
 // Seed routine
 int sqran(int seed)
 {	
-    int old= __qran_seed;
-    __qran_seed= seed; 
-    return old;	
+	int old= __qran_seed;
+	__qran_seed= seed; 
+	return old;	
 } */
 
 //! Quick (and very dirty) pseudo-random number generator 
@@ -114,7 +114,7 @@ int sqran(int seed)
 */
 /*INLINE int qran()
 {	
-    __qran_seed= 1664525*__qran_seed+1013904223;
-    return (__qran_seed>>16) & 0x7FFF;
+	__qran_seed= 1664525*__qran_seed+1013904223;
+	return (__qran_seed>>16) & 0x7FFF;
 }*/
 

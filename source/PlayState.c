@@ -25,7 +25,7 @@ static Sprite sprite1;
 static u16 guy_sprite;
 static Sprite guys[32];
 static Camera cam;
-static u32 t = 0;
+static u32 t = 1;
 static u32 frame = 0;
 
 static void PlayState_draw(void);
@@ -36,7 +36,7 @@ static void PlayState_construct(const GBFS_FILE* dat)
 	REG_BLDCNT = 3 << 6 | BIT(5) | BIT(4) | BIT(0);
 	REG_BLDY = 0x16;
 
-    SetMode( MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
+	SetMode( MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
 
 	REG_BG0CNT = SCREEN_BASE(31);
 
@@ -108,9 +108,9 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		&player.base.sprite 
 		);
 
-	PlayState_draw();
-
 	PlayState_update(NULL, 0);
+
+	PlayState_draw();
 
 	fade_in(float_to_fx(1.0f), 3, BIT(5) | BIT(4) | BIT(0));
 }
@@ -159,7 +159,7 @@ static void PlayState_draw(void)
 	for(i = 0; i < 32; i++)
 		Sprite_draw(&guys[i], cam.pos.x, cam.pos.y);
 
-    Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
+	Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
 
 	Player_draw(&player, cam.pos.x, cam.pos.y);
 
@@ -168,20 +168,20 @@ static void PlayState_draw(void)
 
 static void PlayState_destroy(void)
 {
-    spr_vram_free(metroid_sprite);
-    spr_vram_free(guy_sprite);
-    Player_destroy(&player);
-    Sprite_destroy(&sprite1);
+	spr_vram_free(metroid_sprite);
+	spr_vram_free(guy_sprite);
+	Player_destroy(&player);
+	Sprite_destroy(&sprite1);
 
-    u32 i;
+	u32 i;
 	for(i = 0; i < 32; i++)
 		Sprite_destroy(&guys[i]);
 }
 
 const STATE play_state =
 {
-    PlayState_construct,
-    PlayState_update,
-    PlayState_draw,
-    PlayState_destroy
+	PlayState_construct,
+	PlayState_update,
+	PlayState_draw,
+	PlayState_destroy
 };

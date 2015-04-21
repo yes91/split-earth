@@ -65,5 +65,5 @@ FIXED fx_sqrt(FIXED n)
 
 FIXED fx_inv_sqrt(FIXED n)
 {
-    return fx_exp2(fx_mul(-(FIX_SCALE/2), fx_log2(n)));
+	return fx_exp2(fx_mul(-(FIX_SCALE/2), fx_log2(n)));
 }
