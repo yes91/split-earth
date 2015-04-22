@@ -106,6 +106,8 @@ void Player_update(Player* self, FIXED dt)
 
 	Vector2_plus_equal(&base->sprite.base->pos, Vector2_scalar_mult(base->velocity, dt));
 
+	Character_update(base, dt);	
+
 	if(key_hit(KEY_B))
 		base->sprite.pal -= 1;
 }

@@ -21,6 +21,9 @@ typedef struct Character
 	Vector2 forward;
 	Direction heading;
 	u16 sprite_graphics;
+
+	Sprite shadow;
+	u16 shadow_graphics;
 } Character;
 
 void Character_construct(
@@ -34,6 +37,8 @@ void Character_construct(
 	);
 
 void Character_decode(Character* self, Vector2 pos, const struct GBFS_FILE* dat, const u8* src);
+
+void Character_update(Character* self, FIXED dt);
 
 void Character_draw(Character* self, FIXED offset_x, FIXED offset_y);
 
