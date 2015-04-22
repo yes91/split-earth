@@ -8,6 +8,7 @@
 #include <gba_systemcalls.h>
 #include "spr_vram_manager.h"
 #include "filesys.h"
+#include "util.h"
 
 #include "debug.h"
 
@@ -90,6 +91,7 @@ void Character_update(Character* self, FIXED dt)
 	self->shadow.base->pos.y += self->sprite.base->mid.y + int_to_fx(12);
 }
 
+
 void Character_draw(Character* self, FIXED offset_x, FIXED offset_y)
 {
 	Sprite_draw(&self->sprite, offset_x, offset_y + self->z);
@@ -102,4 +104,11 @@ void Character_destroy(Character* self)
 	spr_vram_free(self->shadow_graphics);
 	Sprite_destroy(&self->sprite);
 	Sprite_destroy(&self->shadow);
+}
+
+void Character_map_clamp(Character* self, Vector2 bounds)
+{
+	SPR_BASE* base = self->sprite.base;
+	base->pos.x = clamp(0, bounds.x - 2 * base->half.x, base->pos.x);
+	base->pos.y = clamp(0, bounds.y - 2 * base->half.y, base->pos.y);
 }

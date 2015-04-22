@@ -25,7 +25,7 @@ static u16 metroid_sprite;
 static Sprite sprite1;
 static u16 guy_sprite;
 static Sprite guys[32];
-static Enemy enemy;
+static Enemy enemies[10];
 static Camera cam;
 static u32 t = 1;
 static u32 frame = 0;
@@ -36,7 +36,7 @@ static void PlayState_update(StateMachine*, FIXED);
 static void PlayState_construct(const GBFS_FILE* dat)
 {
 	REG_BLDCNT = 3 << 6 | BIT(5) | BIT(4) | BIT(0);
-	REG_BLDY = 0x16;
+	REG_BLDY = 0x10;
 
 	SetMode( MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
 
@@ -103,7 +103,7 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		);
 
 	Enemy_load(
-		&enemy,
+		&enemies[0],
 		Vector2_float(150.f, 50.f),
 		dat,
 		"test_player.player"
@@ -121,7 +121,7 @@ static void PlayState_construct(const GBFS_FILE* dat)
 
 	PlayState_draw();
 
-	fade_in(float_to_fx(1.0f), 3, BIT(5) | BIT(4) | BIT(0));
+	fade_in(float_to_fx(0.5f), 3, BIT(5) | BIT(4) | BIT(0));
 }
 
 static void PlayState_update(StateMachine* sm, FIXED dt)
@@ -135,7 +135,9 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 	}
 
 	Player_update(&player, dt);
-	Enemy_update(&enemy, dt);
+	Character_map_clamp((Character*)&player, cam.bounds);
+	Enemy_update(&enemies[0], dt);
+	Character_map_clamp((Character*)&enemies[0], cam.bounds);
 
 	sprite1.base->pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
 	sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));				
@@ -173,17 +175,19 @@ static void PlayState_draw(void)
 
 	Player_draw(&player, cam.pos.x, cam.pos.y);
 
-	Enemy_draw(&enemy, cam.pos.x, cam.pos.y);
+	Enemy_draw(&enemies[0], cam.pos.x, cam.pos.y);
 
 	update_oam();
 }
 
 static void PlayState_destroy(void)
 {
+	fade_out(float_to_fx(0.5f), 3, BIT(5) | BIT(4) | BIT(0));
+
 	spr_vram_free(metroid_sprite);
 	spr_vram_free(guy_sprite);
 	Player_destroy(&player);
-	Enemy_destroy(&enemy);
+	Enemy_destroy(&enemies[0]);
 	Sprite_destroy(&sprite1);
 
 	u32 i;

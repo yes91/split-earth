@@ -44,4 +44,6 @@ void Character_draw(Character* self, FIXED offset_x, FIXED offset_y);
 
 void Character_destroy(Character* self);
 
+void Character_map_clamp(Character* self, Vector2 bounds);
+
 #endif
