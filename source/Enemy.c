@@ -150,7 +150,6 @@ void Enemy_update(Enemy* self, FIXED dt)
 		base->sprite.pal -= 1;
 }
 
-
 void Enemy_draw(Enemy* self, FIXED offset_x, FIXED offset_y)
 {
 	Character_draw((Character*)self, offset_x, offset_y);

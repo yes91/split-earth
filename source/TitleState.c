@@ -17,53 +17,42 @@
 #include "debug.h"
 #include "fade.h"
 
-#define START_X 62
-#define START_Y 83
-#define START_WIDTH 120
-#define START_HEIGHT 16
-static const u16* start_highlight;
+typedef struct Mask
+{
+	const u16* graphics;
+	u32 x, y;
+	u32 width, height;
+} Mask;
 
-#define OPTS_X 82
-#define OPTS_Y 111
-#define OPTS_WIDTH 80
-#define OPTS_HEIGHT 18
-static const u16* opts_highlight;
+static Mask start_game = { NULL, 62, 83, 120, 16 };
+static Mask options = { NULL, 82, 111, 80, 18 };
 
 static bool item;
 static bool item_prev;
 
 static inline void mask_set(
-	const u16* mask, 
-	bool on, 
-	u32 x, 
-	u32 y, 
-	u32 width, 
-	u32 height
+	Mask mask, 
+	bool on
 	)
 {
-	u16* dst = (u16*)VRAM + y * SCREEN_WIDTH + x;
+	u16* dst = (u16*)VRAM + mask.y * SCREEN_WIDTH + mask.x;
 	u16 sign = on ? 1 : -1;
 
-	u32 i;
-	for(i = 0; i < width; i++)
+	u32 width = mask.width;
+	u32 height = mask.height;
+
+	const u16* src = mask.graphics;
+
+	u32 j;
+	for(j = 0; j < height; j++)
 	{
-		u32 j;
-		for(j = 0; j < height; j++)
+		u32 i;
+		for(i = 0; i < width; i++)
 		{
 			dst[j * SCREEN_WIDTH + i] += 
-				sign * mask[j * width + i];
-		}		
+				sign * src[j * mask.width + i];
+		}
 	}
-}
-
-static inline void start_set(bool on)
-{
-	mask_set(start_highlight, on, START_X, START_Y, START_WIDTH, START_HEIGHT);
-}
-
-static inline void opts_set(bool on)
-{
-	mask_set(opts_highlight, on, OPTS_X, OPTS_Y, OPTS_WIDTH, OPTS_HEIGHT);
 }
 
 static void TitleState_construct(const GBFS_FILE* dat)
@@ -74,51 +63,43 @@ static void TitleState_construct(const GBFS_FILE* dat)
 	item_prev = true;
 
 	u32 length;
-	const u8* image = gbfs_get_obj(dat, "title_bg_menu.img.bin", &length);
+	const u16* image = gbfs_get_obj(dat, "title_bg_menu.img.bin", &length);
 
 	CpuFastSet(image, (u16*)VRAM, length >> 2);
 
-	start_highlight = gbfs_get_obj(dat, "title_start_highlight.img.bin", NULL);
-	opts_highlight = gbfs_get_obj(dat, "title_opts_highlight.img.bin", NULL);
+	start_game.graphics = gbfs_get_obj(dat, "title_start_highlight.img.bin", NULL);
+	options.graphics = gbfs_get_obj(dat, "title_opts_highlight.img.bin", NULL);
 
-	start_set(true);
+	mask_set(start_game, true);
 
-	fade_in(float_to_fx(1.0f), 3, BIT(2));
+	fade_in(float_to_fx(0.5f), 2, BIT(2));
 }
 
 static void TitleState_update(StateMachine* self, FIXED dt)
 {
-	if(item && key_hit(KEY_A))
+	if(key_hit(KEY_A))
 	{
-		StateMachine_enter(self, PLAY);
+		STATE_TYPE next = item ? PLAY : TITLE; //TODO: change TITLE -> OPTIONS
+		StateMachine_enter(self, next);
 		return;
 	}
 
 	if(key_hit(KEY_UP | KEY_DOWN))
 	{
+		mask_set(options, item);
 		item = !item;
+		mask_set(start_game, item);
 	}
 }
 
 static void TitleState_draw(void)
 {
-	if(item && !item_prev)
-	{
-		opts_set(false);
-		start_set(true);
-		item_prev = true;
-	}
-	else if (!item && item_prev)
-	{
-		start_set(false);
-		opts_set(true);
-		item_prev = false;
-	}
+
 }
 
 static void TitleState_destroy(void)
 {
-	fade_out(float_to_fx(1.0f), 3, BIT(2));
+	fade_out(float_to_fx(0.5f), 3, BIT(2));
 }
 
 const STATE title_state =

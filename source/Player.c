@@ -36,10 +36,12 @@ static FIXED quad_interp(FIXED t, FIXED max)
 	return ((4 << 16) / (max * max) * (tmax - tsq)) >> FIX_SHIFT;
 }
 
-static void walk(Character* self, Vector2 delta, FIXED speed)
+static void walk(Character* self)
 {
 	//2 px/f * 60 f/s = 120 px/s
-	self->velocity = Vector2_scalar_mult(delta, speed); 
+
+	Vector2 delta = self->velocity;
+	Vector2_normalize(&delta);
 
 	Direction new_heading = self->heading;
 
@@ -92,7 +94,9 @@ void Player_update(Player* self, FIXED dt)
 {
 	Character* base = (Character*)self;
 
-	walk(base, key_dir(), int_to_fx(120));
+	base->velocity = Vector2_scalar_mult(key_dir(), int_to_fx(120)); 
+
+	walk(base);
 
 	jump(base, key_held(KEY_R), float_to_fx(0.25f), dt);
 

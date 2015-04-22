@@ -8,6 +8,7 @@
 #include <gba_systemcalls.h>
 #include "spr_vram_manager.h"
 #include "filesys.h"
+#include "util.h"
 
 void Character_construct(
 	Character* self,
@@ -73,6 +74,13 @@ void Character_decode(Character* self, Vector2 pos, const GBFS_FILE* dat, const 
 	self->sprite.base->pos = pos;
 
 	CpuFastSet(char_pal, &SPRITE_PALETTE[16 * self->sprite.pal], char_pal_len >> 2);
+}
+
+void Character_map_clamp(Character* self, Vector2 bounds)
+{
+	SPR_BASE* base = self->sprite.base;
+	base->pos.x = clamp(0, bounds.x - 2 * base->half.x, base->pos.x);
+	base->pos.y = clamp(0, bounds.y - 2 * base->half.y, base->pos.y);
 }
 
 void Character_draw(Character* self, FIXED offset_x, FIXED offset_y)
