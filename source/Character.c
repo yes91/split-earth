@@ -72,11 +72,12 @@ void Character_decode(Character* self, Vector2 pos, const GBFS_FILE* dat, const 
 	self->sprite.base->pos = pos;
 	
 	u32 shadow_size = 0;
-	const TILE* shadow_tiles = gbfs_get_obj(dat, "shadow_large.tiles", &shadow_size);
-	self->shadow_graphics = spr_vram_load("shadow_large.tiles", shadow_tiles, shadow_size);
+	const TILE* shadow_tiles = gbfs_get_obj(dat, "shadow_test.tiles", &shadow_size);
+	self->shadow_graphics = spr_vram_load("shadow_test.tiles", shadow_tiles, shadow_size);
 	
 	Sprite_construct(&self->shadow, pos, ATTR0_WIDE, ATTR1_SIZE_32, 14, self->shadow_graphics);
 	self->shadow.base->oam.attr0 |= OBJ_MODE(1);
+	self->shadow.base->mid.y = 0;
 	self->shadow.base->half.y = 0;
 	
 	CpuFastSet(char_pal, &SPRITE_PALETTE[16 * self->sprite.pal], char_pal_len >> 2);
@@ -87,8 +88,8 @@ void Character_update(Character* self, FIXED dt)
 	Vector2_plus_equal(&self->sprite.base->pos, Vector2_scalar_mult(self->velocity, dt));
 
 	self->shadow.base->pos = self->sprite.base->pos;
-	//self->shadow.base->pos.x += self->sprite.base->mid.x - int_to_fx(16);
-	//self->shadow.base->pos.y += self->sprite.base->mid.y + int_to_fx(8);
+	self->shadow.base->pos.x += self->sprite.base->mid.x - int_to_fx(16);
+	self->shadow.base->pos.y += self->sprite.base->mid.y + int_to_fx(6);
 }
 
 
@@ -113,5 +114,6 @@ void Character_map_clamp(Character* self, Vector2 bounds)
 
 	base->pos.x = clamp(0, bounds.x - 2 * base->half.x, base->pos.x);
 	base->pos.y = clamp(0, bounds.y - 2 * base->half.y, base->pos.y);
-	shadow->pos = base->pos;
+	shadow->pos.x = clamp(0, bounds.x - 2 * shadow->half.x, shadow->pos.x);
+	shadow->pos.y = clamp(0, bounds.y - 2 * shadow->half.y, shadow->pos.y);
 }
