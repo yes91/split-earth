@@ -143,8 +143,6 @@ void Enemy_update(Enemy* self, FIXED dt)
 
 	debug_print("target / || target || = (%f, %f)\n", 
 		fx_to_float(target.x), fx_to_float(target.y));*/
-
-	Vector2_plus_equal(&base->sprite.base->pos, Vector2_scalar_mult(base->velocity, dt));
 	
 	Character_update(base, dt);
 	

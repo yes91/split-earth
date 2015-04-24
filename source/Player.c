@@ -94,7 +94,7 @@ void Player_update(Player* self, FIXED dt)
 {
 	Character* base = (Character*)self;
 
-	base->velocity = Vector2_scalar_mult(key_dir(), int_to_fx(120)); 
+	base->velocity = Vector2_scalar_mult(key_dir(), int_to_fx(120));
 
 	walk(base);
 
@@ -108,9 +108,7 @@ void Player_update(Player* self, FIXED dt)
 	debug_print("target / || target || = (%f, %f)\n", 
 		fx_to_float(target.x), fx_to_float(target.y));*/
 
-	Vector2_plus_equal(&base->sprite.base->pos, Vector2_scalar_mult(base->velocity, dt));
-
-	Character_update(base, dt);	
+	Character_update(base, dt);
 
 	if(key_hit(KEY_B))
 		base->sprite.pal -= 1;

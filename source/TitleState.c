@@ -94,7 +94,7 @@ static void TitleState_update(StateMachine* self, FIXED dt)
 
 static void TitleState_draw(void)
 {
-
+	
 }
 
 static void TitleState_destroy(void)

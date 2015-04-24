@@ -121,7 +121,11 @@ static void PlayState_construct(const GBFS_FILE* dat)
 
 	PlayState_draw();
 
-	fade_in(float_to_fx(0.5f), 3, BIT(5) | BIT(4) | BIT(0));
+	fade_in(float_to_fx(0.5f), 3,  BIT(5) | BIT(4) | BIT(0));
+
+	REG_BLDCNT = 1 << 6 | BIT(0xD) | BIT(0x8);
+	u32 alpha = 0xD;
+	REG_BLDALPHA = (0x10 - alpha) << 9 | alpha;
 }
 
 static void PlayState_update(StateMachine* sm, FIXED dt)
