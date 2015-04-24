@@ -10,6 +10,8 @@
 #include "filesys.h"
 #include "util.h"
 
+#include "debug.h"
+
 void Character_construct(
 	Character* self,
 	Vector2 pos,
@@ -72,8 +74,36 @@ void Character_decode(Character* self, Vector2 pos, const GBFS_FILE* dat, const 
 
 	Sprite_decode(&self->sprite, self->sprite_graphics, src);
 	self->sprite.base->pos = pos;
-
+	
+	u32 shadow_size = 0;
+	const TILE* shadow_tiles = gbfs_get_obj(dat, "shadow_medium.tiles", &shadow_size);
+	self->shadow_graphics = spr_vram_load("shadow_medium.tiles", shadow_tiles, shadow_size);
+	Sprite_construct(&self->shadow, pos, ATTR0_WIDE, ATTR1_SIZE_8, 14, self->shadow_graphics);
+	self->shadow.base->oam.attr0 |= (1<<10);
+	
 	CpuFastSet(char_pal, &SPRITE_PALETTE[16 * self->sprite.pal], char_pal_len >> 2);
+}
+
+void Character_update(Character* self, FIXED dt)
+{
+	self->shadow.base->pos = self->sprite.base->pos;
+	self->shadow.base->pos.x += self->sprite.base->mid.x - int_to_fx(8);
+	self->shadow.base->pos.y += self->sprite.base->mid.y + int_to_fx(12);
+}
+
+
+void Character_draw(Character* self, FIXED offset_x, FIXED offset_y)
+{
+	Sprite_draw(&self->sprite, offset_x, offset_y + self->z);
+	Sprite_draw(&self->shadow, offset_x, offset_y);
+}
+
+void Character_destroy(Character* self)
+{
+	spr_vram_free(self->sprite_graphics);
+	spr_vram_free(self->shadow_graphics);
+	Sprite_destroy(&self->sprite);
+	Sprite_destroy(&self->shadow);
 }
 
 void Character_map_clamp(Character* self, Vector2 bounds)
@@ -81,15 +111,4 @@ void Character_map_clamp(Character* self, Vector2 bounds)
 	SPR_BASE* base = self->sprite.base;
 	base->pos.x = clamp(0, bounds.x - 2 * base->half.x, base->pos.x);
 	base->pos.y = clamp(0, bounds.y - 2 * base->half.y, base->pos.y);
-}
-
-void Character_draw(Character* self, FIXED offset_x, FIXED offset_y)
-{
-	Sprite_draw(&self->sprite, offset_x, offset_y + self->z);
-}
-
-void Character_destroy(Character* self)
-{
-	spr_vram_free(self->sprite_graphics);
-	Sprite_destroy(&self->sprite);
 }
