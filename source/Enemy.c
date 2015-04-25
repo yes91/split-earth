@@ -43,7 +43,17 @@ static void* patrol_state(Enemy* self, FIXED dt)
 	static FIXED move_time = 0;
 	
 	Character* base = (Character*)self;
-	
+	FIXED selfX = self->base.sprite.base->pos.x;
+	FIXED selfY = self->base.sprite.base->pos.y;
+	FIXED targX = self->target->base->pos.x;
+	FIXED targY = self->target->base->pos.y;	
+	FIXED distX = selfX - targX;
+	FIXED distY = selfY - targY;
+	if(fx_mul(distX, distX) + fx_mul(distY, distY) < int_to_fx(3200)){
+//		debug_print("distx is %d, disty is %d, sum is %d\n", fx_to_int(fx_mul(distX,distX)), fx_to_int(fx_mul(distY,distY)), fx_to_int(fx_mul(distX,distX)+fx_mul(distY,distY)));
+		return pursue_state;
+	}
+
 	Vector2 delta = base->forward;
 
 	if(move_time <= 0)
@@ -70,7 +80,18 @@ static void* patrol_state(Enemy* self, FIXED dt)
 }
 
 static void* pursue_state(Enemy* self, FIXED dt)
-{
+{	FIXED selfX = self->base.sprite.base->pos.x;
+	FIXED selfY = self->base.sprite.base->pos.y;
+	FIXED targX = self->target->base->pos.x;
+	FIXED targY = self->target->base->pos.y;	
+	FIXED distX = selfX - targX;
+	FIXED distY = selfY - targY;
+	if(fx_mul(distX, distX) + fx_mul(distY, distY) > int_to_fx(3200)){
+//		debug_print("distx is %d, disty is %d, sum is %d\n", fx_to_int(fx_mul(distX,distX)), fx_to_int(fx_mul(distY,distY)), fx_to_int(fx_mul(distX,distX)+fx_mul(distY,distY)));
+		return patrol_state;
+	}
+
+	
 	return pursue_state;
 }
 
@@ -81,18 +102,21 @@ void Enemy_construct(
 	const char* image, 
 	const char* pal, 
 	const char* sprite,
-	int palette
+	int palette,
+	Sprite* targ
 	)
 {
 	Character_construct((Character*)self, pos, dat, image, pal, sprite, palette);
+	self->target = targ;
 	self->current = patrol_state;
 }
 
-void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy)
+void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy, Sprite* targ)
 {
 	const u8* src = gbfs_get_obj(dat, enemy, NULL);
 	Character_decode((Character*)self, pos, dat, src);
 	self->current = patrol_state;
+	self->target = targ;
 }
 
 /*static FIXED quad_interp(FIXED t, FIXED max)
