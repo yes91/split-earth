@@ -106,7 +106,8 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		&enemies[0],
 		Vector2_float(150.f, 50.f),
 		dat,
-		"test_player.player"
+		"test_player.player",
+		&player.base.sprite
 		);
 
 	Camera_construct(

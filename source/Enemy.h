@@ -18,6 +18,7 @@ typedef struct Enemy
 {
 	Character base;
 	STATE_FN current;
+	Sprite* target;
 } Enemy;
 
 void Enemy_construct(
@@ -27,10 +28,11 @@ void Enemy_construct(
 	const char* image, 
 	const char* pal, 
 	const char* sprite,
-	int palette
+	int palette,
+	Sprite* targ
 	);
 	
-void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy);
+void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy, Sprite* targ);
 
 void Enemy_update(Enemy* self, FIXED dt);
 
