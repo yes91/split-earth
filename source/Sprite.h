@@ -54,7 +54,7 @@ void Sprite_destroy(Sprite* self);
 
 Vector2* Sprite_pos(Sprite* self);
 
-Vector2* Sprite_mid(Sprite* self);
+Vector2 Sprite_mid(Sprite* self);
 
-Vector2* Sprite_half(Sprite* half);
+Vector2 Sprite_half(Sprite* half);
 #endif

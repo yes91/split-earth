@@ -149,12 +149,12 @@ Vector2* Sprite_pos(Sprite* self)
 	return &self->base->pos;
 }
 
-Vector2* Sprite_mid(Sprite* self)
+Vector2 Sprite_mid(Sprite* self)
 {
-	return &self->base->mid;
+	return self->base->mid;
 }
 
-Vector2* Sprite_half(Sprite* self)
+Vector2 Sprite_half(Sprite* self)
 {
-	return &self->base->half;
+	return self->base->half;
 }
