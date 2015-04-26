@@ -63,13 +63,16 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		"test_player.player"
 		);
 
-	Enemy_load(
-		&enemies[0],
-		Vector2_float(150.f, 50.f),
-		dat,
-		"skellyman.enemy",
-		&player.base.sprite
-		);
+	int i;
+	for (i = 0; i < 3; i++) {
+		Enemy_load(
+			&enemies[i],
+			Vector2_float(32*(i%5), 48*(i/5)),
+			dat,
+			"skellyman.enemy",
+			&player.base.sprite
+			);
+	}
 
 	Camera_construct(
 		&cam, 
@@ -102,8 +105,6 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 
 	Player_update(&player, dt);
 	Character_map_clamp((Character*)&player, cam.bounds);
-	Enemy_update(&enemies[0], dt);
-	Character_map_clamp((Character*)&enemies[0], cam.bounds);
 	
 	if(key_hit(KEY_A))
 	{
@@ -115,14 +116,35 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 
 	t = (t + 1) % 360;	
 	
-	handle_collision(&((Character*)&player)->sprite, &((Character*)&enemies[0])->sprite);
+	int i;
+	//int j;
+	for (i = 0; i < 3; i++)
+	{	
+		// GOTTA GO SLOW
+		/*
+		for (j = 0; j < 10; j++)
+		{
+			if (i!=j)
+			{
+				handle_collision(&((Character*)&enemies[i])->sprite, &((Character*)&enemies[j])->sprite);
+			}
+		}
+		*/
+		
+		Enemy_update(&enemies[i], dt);
+		Character_map_clamp((Character*)&enemies[i], cam.bounds);
+		handle_collision(&((Character*)&player)->sprite, &((Character*)&enemies[i])->sprite);
+	}
 }
 
 static void PlayState_draw(void)
 {
 	Player_draw(&player, cam.pos.x, cam.pos.y);
-
-	Enemy_draw(&enemies[0], cam.pos.x, cam.pos.y);
+	int i;
+	for (i = 0; i < 3; i++)
+	{
+		Enemy_draw(&enemies[i], cam.pos.x, cam.pos.y);	
+	}
 
 	update_oam();
 }
@@ -132,7 +154,11 @@ static void PlayState_destroy(void)
 	fade_out(float_to_fx(0.5f), 3, BIT(5) | BIT(4) | BIT(0));
 
 	Player_destroy(&player);
-	Enemy_destroy(&enemies[0]);
+	int i;
+	for (i = 0; i < 3; i++)
+	{
+		Enemy_destroy(&enemies[i]);
+	}
 }
 
 int check_collision(Sprite* a, Sprite* b)
@@ -146,11 +172,13 @@ int check_collision(Sprite* a, Sprite* b)
 
 void handle_collision(Sprite* a, Sprite* b)
 {
-	Vector2 dir = Vector2_sub(Vector2_add(*Sprite_pos(a), Sprite_mid(a)), Vector2_add(*Sprite_pos(b), Sprite_mid(b)));
-	Vector2_normalize(&dir);
+	Vector2 a_dir = Vector2_sub(Vector2_add(*Sprite_pos(a), Sprite_mid(a)), Vector2_add(*Sprite_pos(b), Sprite_mid(b)));
+	Vector2_normalize(&a_dir);
+	Vector2 b_dir = Vector2_negate(a_dir);
 	while (check_collision(a, b))
 	{
-		*Sprite_pos(a) = Vector2_add(*Sprite_pos(a), dir);
+		*Sprite_pos(a) = Vector2_add(*Sprite_pos(a), a_dir);
+		*Sprite_pos(b) = Vector2_add(*Sprite_pos(b), b_dir);
 	}
 }
 
