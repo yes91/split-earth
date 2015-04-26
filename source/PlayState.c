@@ -21,10 +21,6 @@
 #include "StateMachine.h"
 
 static Player player;
-static u16 metroid_sprite;
-static Sprite sprite1;
-static u16 guy_sprite;
-static Sprite guys[32];
 static Enemy enemies[10];
 static Camera cam;
 static u32 t = 1;
@@ -60,41 +56,6 @@ static void PlayState_construct(const GBFS_FILE* dat)
 	
 	memcpy(BG_PALETTE, bg_pal, bg_pal_len);
 
-	u32 metr_size = 0;
-	const TILE* metr_tiles = gbfs_get_obj(dat, "metr.tiles", &metr_size);
-
-	u32 metr_pal_len = 0;
-	const u16* metr_pal = gbfs_get_obj(dat, "metr.pal", &metr_pal_len);
-
-	metroid_sprite = spr_vram_load("metr.tiles", metr_tiles, metr_size);
-	memcpy(SPRITE_PALETTE, metr_pal, metr_pal_len);
-
-	Sprite_construct(
-		&sprite1, 
-		Vector2_float(50.f, 50.f),
-		ATTR0_SQUARE, 
-		ATTR1_SIZE_64,
-		0,
-		metroid_sprite 
-		);
-
-	u32 guy_size = 0;
-	const TILE* guy_tiles = gbfs_get_obj(dat, "guy.tiles", &guy_size);
-	guy_sprite = spr_vram_load("guy.tiles", guy_tiles, guy_size);
-
-	u32 i;
-	for (i = 0; i < 32; i++)
-	{
-		Sprite_construct(
-			&guys[i], 
-			Vector2_float(0.f, 0.f), 
-			ATTR0_SQUARE, 
-			ATTR1_SIZE_32, 
-			3, 
-			guy_sprite
-			);
-	}
-
 	Player_load(
 		&player,
 		Vector2_float(100.f, 50.f),
@@ -106,7 +67,7 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		&enemies[0],
 		Vector2_float(150.f, 50.f),
 		dat,
-		"test_player.player",
+		"skellyman.enemy",
 		&player.base.sprite
 		);
 
@@ -135,7 +96,7 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 
 	if(frame == 60)
 	{
-		debug_print("x: %d y: %d\n", fx_to_int(guys[1].base->pos.x), fx_to_int(guys[1].base->pos.y));
+		//debug_print("x: %d y: %d\n", fx_to_int(guys[1].base->pos.x), fx_to_int(guys[1].base->pos.y));
 		frame = 0;
 	}
 
@@ -143,18 +104,6 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 	Character_map_clamp((Character*)&player, cam.bounds);
 	Enemy_update(&enemies[0], dt);
 	Character_map_clamp((Character*)&enemies[0], cam.bounds);
-
-	sprite1.base->pos.x = int_to_fx(128 - 32 + (50 * fx_cos(t) >> 14));
-	sprite1.base->pos.y = int_to_fx(128 - 32 + (50 * fx_sin(t) >> 14));				
-	
-	int grouping;
-	int i;
-	for (i = 0; i < 32; i++)
-	{
-		grouping = i/8;
-		guys[i].base->pos.x = int_to_fx(20 + 50 * grouping + (-10 * (i%8) * fx_cos(t) >> 14));
-		guys[i].base->pos.y = int_to_fx(20 + 50 * grouping + (-10 * (i%8) * fx_sin(t) >> 14));
-	}
 
 	if(key_hit(KEY_A))
 	{
@@ -172,12 +121,6 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 
 static void PlayState_draw(void)
 {
-	u32 i;
-	for(i = 0; i < 32; i++)
-		Sprite_draw(&guys[i], cam.pos.x, cam.pos.y);
-
-	Sprite_draw(&sprite1, cam.pos.x, cam.pos.y);
-
 	Player_draw(&player, cam.pos.x, cam.pos.y);
 
 	Enemy_draw(&enemies[0], cam.pos.x, cam.pos.y);
@@ -189,15 +132,8 @@ static void PlayState_destroy(void)
 {
 	fade_out(float_to_fx(0.5f), 3, BIT(5) | BIT(4) | BIT(0));
 
-	spr_vram_free(metroid_sprite);
-	spr_vram_free(guy_sprite);
 	Player_destroy(&player);
 	Enemy_destroy(&enemies[0]);
-	Sprite_destroy(&sprite1);
-
-	u32 i;
-	for(i = 0; i < 32; i++)
-		Sprite_destroy(&guys[i]);
 }
 
 const STATE play_state =

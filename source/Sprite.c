@@ -102,10 +102,24 @@ void Sprite_decode(Sprite* self, int tile, const u8* src)
 	u16 shape;
 	src += read_data(&shape, src, sizeof shape);
 
+	bool bounds_set;
+	src += read_data(&bounds_set, src, sizeof bounds_set);
+
+	Vector2 bounds[2];
+	if(bounds_set)
+	{
+		src += read_data(&bounds, src, sizeof bounds);
+	}
+
 	u8 pal;
 	src += read_data(&pal, src, sizeof pal);
 
 	Sprite_construct(self, Vector2_create(0, 0), shape, size, pal, tile);
+
+	if(bounds_set)
+	{
+		memcpy(&self->base->mid, bounds, sizeof bounds);
+	}
 	
 	u32 anim_count;
 	src += read_data(&anim_count, src, sizeof anim_count);

@@ -17,6 +17,8 @@ typedef void*(*STATE_FN)(struct Enemy*, FIXED);
 typedef struct Enemy
 {
 	Character base;
+	FIXED alert_radius;
+	FIXED attack_radius;
 	STATE_FN current;
 	Sprite* target;
 } Enemy;
