@@ -2,10 +2,9 @@
 #define _Sprite_h_
 
 #include "Vector2.h"
+#include "oam_manager.h"
 
 struct GBFS_FILE;
-
-struct SPR_BASE;
 
 typedef struct Frame 
 { 
@@ -27,7 +26,7 @@ typedef struct AnimContainer
 
 typedef struct Sprite
 {
-	struct SPR_BASE* base;
+	SPR_BASE* base;
 	int pal, tile;
 	int tiles;
 	int anim;
@@ -46,15 +45,27 @@ void Sprite_construct(
 
 void Sprite_decode(Sprite* self, int tile, const u8* src);
 
+void Sprite_toggle(Sprite* self);
+
 void Sprite_draw(Sprite* self, FIXED offset_x, FIXED offset_y);
 
 void Sprite_play(Sprite* self, u32 anim);
 
 void Sprite_destroy(Sprite* self);
 
-Vector2* Sprite_pos(Sprite* self);
+static inline Vector2* Sprite_pos(Sprite* self)
+{
+	return &self->base->pos;
+}
 
-Vector2 Sprite_mid(Sprite* self);
+static inline Vector2 Sprite_mid(Sprite* self)
+{
+	return self->base->mid;
+}
 
-Vector2 Sprite_half(Sprite* half);
+static inline Vector2 Sprite_half(Sprite* self)
+{
+	return self->base->half;
+}
+
 #endif

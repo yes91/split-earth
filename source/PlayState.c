@@ -26,6 +26,19 @@ static Camera cam;
 static u32 t = 1;
 static u32 frame = 0;
 
+static inline int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+static inline int max(int a, int b)
+{
+	return a > b ? a : b;
+}
+
+static bool check_collision(Sprite* a, Sprite* b, Vector2 res[]);
+static void handle_collision(Sprite* a, Sprite* b);
+
 static void PlayState_draw(void);
 static void PlayState_update(StateMachine*, FIXED);
 
@@ -87,7 +100,7 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		);
 
 	int i;
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 10; i++) {
 		Enemy_load(
 			&enemies[i],
 			Vector2_float(32*(i%5), 48*(i/5)),
@@ -125,9 +138,6 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 		//debug_print("x: %d y: %d\n", fx_to_int(guys[1].base->pos.x), fx_to_int(guys[1].base->pos.y));
 		frame = 0;
 	}
-
-	Player_update(&player, dt);
-	Character_map_clamp((Character*)&player, cam.bounds);
 	
 	if(key_hit(KEY_A))
 	{
@@ -140,11 +150,11 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 	t = (t + 1) % 360;	
 	
 	int i;
-	//int j;
-	for (i = 0; i < 3; i++)
+	int j;
+	for (i = 0; i < 10; i++)
 	{	
 		// GOTTA GO SLOW
-		/*
+		
 		for (j = 0; j < 10; j++)
 		{
 			if (i!=j)
@@ -152,19 +162,23 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 				handle_collision(&((Character*)&enemies[i])->sprite, &((Character*)&enemies[j])->sprite);
 			}
 		}
-		*/
+		
 		
 		Enemy_update(&enemies[i], dt);
 		Character_map_clamp((Character*)&enemies[i], cam.bounds);
+		
 		handle_collision(&((Character*)&player)->sprite, &((Character*)&enemies[i])->sprite);
 	}
+
+	Player_update(&player, dt);
+	Character_map_clamp((Character*)&player, cam.bounds);
 }
 
 static void PlayState_draw(void)
 {
 	Player_draw(&player, cam.pos.x, cam.pos.y);
 	int i;
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 10; i++)
 	{
 		Enemy_draw(&enemies[i], cam.pos.x, cam.pos.y);	
 	}
@@ -178,31 +192,72 @@ static void PlayState_destroy(void)
 
 	Player_destroy(&player);
 	int i;
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 10; i++)
 	{
 		Enemy_destroy(&enemies[i]);
 	}
 }
 
-int check_collision(Sprite* a, Sprite* b)
+static inline bool check_collision(Sprite* a, Sprite* b, Vector2 res[])
 {
-	Vector2 a_tl = *Sprite_pos(a);
-	Vector2 a_br = Vector2_add(a_tl, Vector2_add(Sprite_mid(a), Sprite_half(a)));
-	Vector2 b_tl = *Sprite_pos(b);	
-	Vector2 b_br = Vector2_add(b_tl, Vector2_add(Sprite_mid(b), Sprite_half(b)));
-	return !( (a_br.x < b_tl.x) || (a_tl.x > b_br.x) || (a_tl.y > b_br.y) || (a_br.y < b_tl.y) );
+	Vector2 a_min = *Sprite_pos(a);
+	Vector2 a_max = Vector2_add(a_min, Vector2_add(Sprite_mid(a), Sprite_half(a)));
+
+	Vector2 b_min = *Sprite_pos(b);
+	Vector2 b_max = Vector2_add(b_min, Vector2_add(Sprite_mid(b), Sprite_half(b)));
+
+	res[0].x = max(a_min.x, b_min.x);
+	res[0].y = max(a_min.y, b_min.y);
+	res[1].x = min(a_max.x, b_max.x);
+	res[1].y = min(a_max.y, b_max.y);
+
+	if( res[0].x < res[1].x && res[0].y < res[1].y )
+	{
+		res[1].x -= res[0].x;
+		res[1].y -= res[0].y;
+		return true;
+	}
+
+	res[0] = Vector2_create(0, 0);
+	res[1] = Vector2_create(0, 0);
+
+	return false;
 }
 
-void handle_collision(Sprite* a, Sprite* b)
+static inline void resolve_collision(Sprite* sp, Vector2 area[])
 {
-	Vector2 a_dir = Vector2_sub(Vector2_add(*Sprite_pos(a), Sprite_mid(a)), Vector2_add(*Sprite_pos(b), Sprite_mid(b)));
-	Vector2_normalize(&a_dir);
-	Vector2 b_dir = Vector2_negate(a_dir);
-	while (check_collision(a, b))
+	if (area[1].x < area[1].y) 
 	{
-		*Sprite_pos(a) = Vector2_add(*Sprite_pos(a), a_dir);
-		*Sprite_pos(b) = Vector2_add(*Sprite_pos(b), b_dir);
+		if(Sprite_pos(sp)->x < area[0].x)
+		{
+			Sprite_pos(sp)->x -= area[1].x;
+		}
+		else
+		{
+			Sprite_pos(sp)->x += area[1].x;
+		}
 	}
+	else if(area[1].x > area[1].y)
+	{
+		if(Sprite_pos(sp)->y < area[0].y)
+		{
+			Sprite_pos(sp)->y -= area[1].y;
+		}
+		else
+		{
+			Sprite_pos(sp)->y += area[1].y;
+		}
+	}
+}
+
+static inline void handle_collision(Sprite* a, Sprite* b)
+{
+	Vector2 area[2];
+	if (check_collision(a, b, area))
+	{
+		resolve_collision(a, area);
+		resolve_collision(b, area);
+	} 
 }
 
 const STATE play_state =
