@@ -7,20 +7,24 @@
 
 #include "PoolAllocator.h"
 
-/*OBJATTR obj_buffer[MAX_OBJ];
-OBJAFFINE* obj_aff_buffer= (OBJAFFINE*)obj_buffer;*/
-
 static SPR_BASE sprite_mem[MAX_OBJ];
 
 static PoolAllocator sprite_pool;
 
 static u8 index_buffer[MAX_OBJ];
 
+/**	@fn spr_alloc
+ *	@brief Allocate the pool of sprites 
+ */
 void* spr_alloc(void)
 {   
 	return PoolAllocator_alloc(&sprite_pool);
 }
 
+/**	@fn spr_free
+ *	@brief Frees up the space in the pool occupied by a sprite
+ *	@param *ptr Pointer to sprite
+ */
 void spr_free(void* ptr)
 {
 	SPR_BASE* sprite = ptr;
@@ -28,28 +32,25 @@ void spr_free(void* ptr)
 	PoolAllocator_free(&sprite_pool, ptr);
 }
 
+/**	@fn oam_copy
+ *	@brief Copies OAM data to the appropriate OAM space
+ *	@param *dst OBJATTR pointer to OAM destination
+ *	@param *src SPR_BASE pointer to the location of sprites
+ *	@param count How many sprite's OAM data to be copied
+ */
 void oam_copy(OBJATTR* dst, const SPR_BASE* src, u32 count)
 {
 	int i;
 	for(i = 0; i < count; i++)
 		dst[i] = src[index_buffer[i]].oam;
-/* NOTE: while struct-copying is the Right Thing to do here, 
-//   there's a strange bug in DKP that sometimes makes it not work
-//   If you see problems, just use the word-copy version.
-#if 1
-	while(count--)
-		*dst++ = (src++)->oam;
-#else
-	u32 *dstw= (u32*)dst, *srcw= (u32*)src;
-	while(count--)
-	{
-		*dstw++ = *srcw++;
-		*dstw++ = *srcw++;
-	}
-#endif*/
-
 }
 
+/**	@fn oam_init
+ *	@brief Initializes the OAM
+ *	@param *obj SPR_BASE pointer for where OAM memory starts
+ *	@param count How many OAM entries to initialize
+ *	This sets all current OAM entries to disabled, then copies over the current sprite OAM data
+ */
 void oam_init(SPR_BASE* obj, u32 count)
 {
 	u32 n = count;
@@ -69,17 +70,35 @@ void oam_init(SPR_BASE* obj, u32 count)
 	oam_copy(OAM, obj, count);
 }
 
+/**	@fn init_oam
+ *	@brief Calls for the OAM to be initialized and for the creation of a sprite pool
+ *	@see oam_init
+ */
 void init_oam(void)
 {
 	oam_init(sprite_mem, MAX_OBJ);
 	PoolAllocator_construct(&sprite_pool, sprite_mem, MAX_OBJ, sizeof(SPR_BASE));
 }
 
+/**	@fn get_key
+ *	@brief Key function for the OAM sorting functions
+ *	@param *sprite SPR_BASE pointer to the sprite whose y value will be checked
+ *	@return Y-value for the bottom of the sprite's bounding box
+ *	@see id_sort_insertion
+ *	@see id_sort_shell
+ */
 int get_key(SPR_BASE* sprite)
 {
 	return sprite->pos.y + sprite->mid.y + sprite->half.y;
 }
 
+
+/**	@fn id_sort_insertion
+ *	@brief Insertion sort for OAM entries
+ *	@param sprites[] SPR_BASE array where all sprites reside
+ *	@param ids[] u8 array containing IDs that becomes sorted
+ *	@param count How many sprites need to be sorted
+ */
 IWRAM_CODE void id_sort_insertion(SPR_BASE sprites[], u8 ids[], int count)
 {
 	u32 i;
@@ -97,6 +116,13 @@ IWRAM_CODE void id_sort_insertion(SPR_BASE sprites[], u8 ids[], int count)
 		ids[j] = id;
 	}
 }
+
+/**	@fn id_sort_shell
+ *	@brief Shell sort for OAM entries
+ *	@param sprites[] SPR_BASE array where all sprites reside
+ *	@param ids[] u8 array containing IDs that becomes sorted
+ *	@param count How many sprites need to be sorted
+ */
 
 IWRAM_CODE void id_sort_shell(SPR_BASE sprites[], u8 ids[], int count)
 {
@@ -121,6 +147,9 @@ IWRAM_CODE void id_sort_shell(SPR_BASE sprites[], u8 ids[], int count)
 	} while(inc > 1);
 }
 
+/**	@fn update_oam
+ *	@brief Executed every frame, calls the OAM sorting function along with the copy
+ */
 void update_oam(void)
 {
 	id_sort_insertion(sprite_mem, index_buffer, MAX_OBJ);
