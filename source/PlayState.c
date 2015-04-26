@@ -113,14 +113,9 @@ static void PlayState_update(StateMachine* sm, FIXED dt)
 
 	Camera_update(&cam);
 
-	t = (t + 1) % 360;
+	t = (t + 1) % 360;	
 	
-	if (check_collision(&((Character*)&player)->sprite, &((Character*)&enemies[0])->sprite))
-	{
-		debug_print("YEAH!%i\n", 1);
-	}
-	frame++;
-
+	handle_collision(&((Character*)&player)->sprite, &((Character*)&enemies[0])->sprite);
 }
 
 static void PlayState_draw(void)
@@ -147,6 +142,16 @@ int check_collision(Sprite* a, Sprite* b)
 	Vector2 b_tl = *Sprite_pos(b);	
 	Vector2 b_br = Vector2_add(b_tl, Vector2_add(Sprite_mid(b), Sprite_half(b)));
 	return !( (a_br.x < b_tl.x) || (a_tl.x > b_br.x) || (a_tl.y > b_br.y) || (a_br.y < b_tl.y) );
+}
+
+void handle_collision(Sprite* a, Sprite* b)
+{
+	Vector2 dir = Vector2_sub(Vector2_add(*Sprite_pos(a), Sprite_mid(a)), Vector2_add(*Sprite_pos(b), Sprite_mid(b)));
+	Vector2_normalize(&dir);
+	while (check_collision(a, b))
+	{
+		*Sprite_pos(a) = Vector2_add(*Sprite_pos(a), dir);
+	}
 }
 
 const STATE play_state =
