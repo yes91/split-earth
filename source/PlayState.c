@@ -36,25 +36,48 @@ static void PlayState_construct(const GBFS_FILE* dat)
 
 	SetMode( MODE_0 | OBJ_ENABLE | OBJ_1D_MAP | BG0_ENABLE );
 
-	REG_BG0CNT = SCREEN_BASE(31);
+	REG_BG0CNT = TEXTBG_SIZE_512x512 | SCREEN_BASE(27);
 
 	spr_vram_init(false);
 
 	u32 tiles_size = 0;
-	const TILE* bg_tiles = gbfs_get_obj(dat, "test_tileset.tiles", &tiles_size);
+	const TILE* bg_tiles = gbfs_get_obj(dat, "tile_map.tiles", &tiles_size);
 	tiles_size /= sizeof(TILE);
 	
 	u32 bg_pal_len = 0;
-	const u16* bg_pal = gbfs_get_obj(dat, "test_tileset.pal", &bg_pal_len);
+	const u16* bg_pal = gbfs_get_obj(dat, "tile_map.pal", &bg_pal_len);
 	
-	u32 tilemap_size = 0;
-	const u16* bg_map = gbfs_get_obj(dat, "BG_Maps.raw", &tilemap_size);
+	/*u32 tilemap_size = 0;
+	const u16* bg_map = gbfs_get_obj(dat, "tile_map.map", &tilemap_size);
 	
-	memcpy(SCREEN_BASE_BLOCK(31), bg_map, tilemap_size);
+	u32 base;
+	for(base = 27; base < 31; base++)
+	{
+		CpuFastSet(bg_map, SCREEN_BASE_BLOCK(base), tilemap_size/16);
+		bg_map += tilemap_size/4;
+	}*/
 	
 	tile_copy(&tile_mem[0][0], bg_tiles, tiles_size);
 	
 	memcpy(BG_PALETTE, bg_pal, bg_pal_len);
+
+	u16 pattern[16] = { 4, 5, 6, 7, 20, 21, 22, 23, 36, 37, 38, 39, 52, 53, 54, 55 };
+
+	u32 base;
+	for(base = 27; base < 31; base++)
+	{
+		u16* dst = SCREEN_BASE_BLOCK(base);
+
+		u16 y;
+		for(y = 0; y < 32; y++)
+		{
+			u16 x;
+			for(x = 0; x < 32; x++)
+			{
+				dst[y * 32 + x] = pattern[(y % 4) * 4 + (x % 4)];
+			}
+		}
+	}
 
 	Player_load(
 		&player,
@@ -75,7 +98,7 @@ static void PlayState_construct(const GBFS_FILE* dat)
 		&cam, 
 		CAM_BG0, 
 		Vector2_float(0.f, 0.f), 
-		Vector2_float(256.f, 256.f), 
+		Vector2_float(512.f, 512.f), 
 		&player.base.sprite 
 		);
 
