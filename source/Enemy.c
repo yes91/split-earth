@@ -9,6 +9,7 @@
 #include "fastmath.h"
 #include "util.h"
 #include "debug.h"
+#include "filesys.h"
 
 #include <stdlib.h>
 
@@ -30,8 +31,8 @@ int sqran(int seed)
 */
 static inline int qran(void)
 {	
-	__qran_seed= 1664525*__qran_seed+1013904223;
-	return (__qran_seed>>16) & 0x7FFF;
+	__qran_seed = 1664525 * __qran_seed + 1013904223;
+	return (__qran_seed >> 16) & 0x7FFF;
 }
 
 static void walk(Character* self, Vector2 delta, FIXED speed);
@@ -43,14 +44,15 @@ static void* patrol_state(Enemy* self, FIXED dt)
 	static FIXED move_time = 0;
 	
 	Character* base = (Character*)self;
-	FIXED selfX = self->base.sprite.base->pos.x;
-	FIXED selfY = self->base.sprite.base->pos.y;
-	FIXED targX = self->target->base->pos.x;
-	FIXED targY = self->target->base->pos.y;	
-	FIXED distX = selfX - targX;
-	FIXED distY = selfY - targY;
-	if(fx_mul(distX, distX) + fx_mul(distY, distY) < int_to_fx(3200)){
-//		debug_print("distx is %d, disty is %d, sum is %d\n", fx_to_int(fx_mul(distX,distX)), fx_to_int(fx_mul(distY,distY)), fx_to_int(fx_mul(distX,distX)+fx_mul(distY,distY)));
+
+	Vector2 from = self->base.sprite.base->pos;
+	Vector2 to = self->target->base->pos;
+
+	Vector2 dp = Vector2_sub(to, from);
+	
+	FIXED radius = self->alert_radius;
+	if(Vector2_mag_sq(&dp) < fx_mul(radius, radius)){
+	// debug_print("distx is %d, disty is %d, sum is %d\n", fx_to_int(fx_mul(distX,distX)), fx_to_int(fx_mul(distY,distY)), fx_to_int(fx_mul(distX,distX)+fx_mul(distY,distY)));
 		return pursue_state;
 	}
 
@@ -80,17 +82,29 @@ static void* patrol_state(Enemy* self, FIXED dt)
 }
 
 static void* pursue_state(Enemy* self, FIXED dt)
-{	FIXED selfX = self->base.sprite.base->pos.x;
-	FIXED selfY = self->base.sprite.base->pos.y;
-	FIXED targX = self->target->base->pos.x;
-	FIXED targY = self->target->base->pos.y;	
-	FIXED distX = selfX - targX;
-	FIXED distY = selfY - targY;
-	if(fx_mul(distX, distX) + fx_mul(distY, distY) > int_to_fx(3200)){
+{	
+
+	Vector2 from = self->base.sprite.base->pos;
+	Vector2 to = self->target->base->pos;
+
+	Vector2 delta = Vector2_sub(to, from);
+	
+	FIXED alert = self->alert_radius;
+	if(Vector2_mag_sq(&delta) > fx_mul(alert, alert))
+	{
 //		debug_print("distx is %d, disty is %d, sum is %d\n", fx_to_int(fx_mul(distX,distX)), fx_to_int(fx_mul(distY,distY)), fx_to_int(fx_mul(distX,distX)+fx_mul(distY,distY)));
 		return patrol_state;
 	}
 
+	FIXED attack = self->attack_radius;
+	if(Vector2_mag_sq(&delta) < fx_mul(attack, attack))
+	{
+		delta = Vector2_create(0, 0);
+	}
+
+	Vector2_normalize(&delta);
+
+	walk((Character*)self, delta, int_to_fx(80));
 	
 	return pursue_state;
 }
@@ -114,6 +128,10 @@ void Enemy_construct(
 void Enemy_load(Enemy* self, Vector2 pos, const struct GBFS_FILE* dat, const char* enemy, Sprite* targ)
 {
 	const u8* src = gbfs_get_obj(dat, enemy, NULL);
+
+	src += read_data(&self->alert_radius, src, sizeof self->alert_radius);
+	src += read_data(&self->attack_radius, src, sizeof self->attack_radius);
+
 	Character_decode((Character*)self, pos, dat, src);
 	self->current = patrol_state;
 	self->target = targ;
@@ -159,14 +177,6 @@ void Enemy_update(Enemy* self, FIXED dt)
 	self->current = self->current(self, dt);
 
 	Character* base = (Character*)self;
-
-	/*Vector2 target = Vector2_sub(self->sprite.pos, 
-		Vector2_create(int_to_fx(100), int_to_fx(50)));
-
-	Vector2_normalize(&target);
-
-	debug_print("target / || target || = (%f, %f)\n", 
-		fx_to_float(target.x), fx_to_float(target.y));*/
 	
 	Character_update(base, dt);
 	
