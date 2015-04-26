@@ -52,9 +52,4 @@ void Sprite_play(Sprite* self, u32 anim);
 
 void Sprite_destroy(Sprite* self);
 
-Vector2* Sprite_pos(Sprite* self);
-
-Vector2 Sprite_mid(Sprite* self);
-
-Vector2 Sprite_half(Sprite* half);
 #endif
