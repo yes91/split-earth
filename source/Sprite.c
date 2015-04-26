@@ -143,3 +143,18 @@ void Sprite_decode(Sprite* self, int tile, const u8* src)
 		dst->clips[i] = anim;
 	}
 }
+
+Vector2* Sprite_pos(Sprite* self)
+{
+	return &self->base->pos;
+}
+
+Vector2* Sprite_mid(Sprite* self)
+{
+	return &self->base->mid;
+}
+
+Vector2* Sprite_half(Sprite* self)
+{
+	return &self->base->half;
+}
